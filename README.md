@@ -2,6 +2,10 @@
 
 一款横版等距像素风海底成长小游戏。玩家控制戴着探照灯的小丑鱼“沫沫”，追逐会闪躲的鱼虾，长大后反击刺豚、水母，并在每片海域结尾挑战鲨鱼王。
 
+## [▶ 在线游玩](https://sunebear.github.io/momo-reef-feast/)
+
+无需安装，使用浏览器打开即可开始游戏，支持鼠标、触控和键盘操作。
+
 ## 实验目的
 
 这个项目也是一次模型“全自主制作循环”能力测试：从一条完整 Prompt 出发，让模型自主完成概念设计、生图、切图与透明处理、素材验证、游戏开发、浏览器运行、视觉与交互检查、自动修复、离线构建和文档整理。保留 `prompts/`、`workflow/sources/`、`workflow/tools/` 与 `workflow/reports/`，是为了让过程可以复现和审查，而不只是保存最终游戏。
@@ -10,6 +14,7 @@
 
 ## 运行与部署
 
+- 在线版本：[https://sunebear.github.io/momo-reef-feast/](https://sunebear.github.io/momo-reef-feast/)
 - 直接运行：双击 `index.html`，或将它拖入浏览器打开；游戏不需要安装依赖或执行构建。
 - 兼容方式：如果浏览器限制 `file://` 下的本地音视频，可使用任意静态服务器。例如执行 `python3 -m http.server 8765`，再打开 `http://127.0.0.1:8765/`；Python 不是必需依赖。
 - GitHub Pages：将仓库推送到 GitHub，在 Settings → Pages 中选择从默认分支根目录部署。
