@@ -1000,6 +1000,126 @@
       .start-button { min-height: 52px; }
     }
 
+    /* Phone portrait: recompose the HUD instead of shrinking the desktop row. */
+    @media (max-width: 600px) and (orientation: portrait) {
+      .hud {
+        grid-template-columns: 98px minmax(0, 1fr);
+        grid-template-areas:
+          "score growth"
+          "controls controls";
+        align-items: center;
+        gap: 7px 8px;
+        top: max(9px, env(safe-area-inset-top));
+        left: max(8px, env(safe-area-inset-left));
+        right: max(8px, env(safe-area-inset-right));
+      }
+
+      .score-bubble {
+        grid-area: score;
+        width: 100%;
+        min-width: 0;
+        height: 48px;
+        gap: 5px;
+        padding: 0 8px;
+      }
+      .score-bubble .star { flex-basis: 28px; width: 28px; height: 28px; }
+      .score-copy strong { font-size: .9rem; letter-spacing: .01em; }
+
+      .growth-wrap {
+        grid-area: growth;
+        width: 100%;
+        min-width: 0;
+        min-height: 48px;
+        height: 48px;
+        padding: 7px 9px 6px 43px;
+      }
+      .growth-wrap::before { left: 8px; width: 28px; height: 30px; }
+      .growth-label {
+        min-width: 0;
+        margin-bottom: 4px;
+        gap: 6px;
+        font-size: .7rem;
+        line-height: 1.1;
+        white-space: nowrap;
+      }
+      .growth-label > span {
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .growth-label > strong {
+        flex: 0 0 auto;
+        font-size: .72rem;
+        white-space: nowrap;
+      }
+      .growth-track { height: 11px; border-width: 2px; }
+
+      .hud-right {
+        grid-area: controls;
+        display: grid;
+        grid-template-columns: 104px repeat(3, 44px);
+        justify-content: end;
+        align-items: center;
+        gap: 7px;
+        width: 100%;
+      }
+      .lives {
+        width: 104px;
+        min-width: 0;
+        height: 44px;
+        padding: 0 10px;
+        gap: 5px;
+      }
+      .heart { width: 20px; height: 20px; }
+      .round-button { position: relative; width: 44px; height: 44px; }
+      .round-button::after { inset: 12px; }
+      #autoButton::after { inset: 8px; }
+      #pauseButton,
+      #autoButton,
+      #soundButton { position: relative; inset: auto; }
+
+      .toast {
+        top: max(111px, calc(env(safe-area-inset-top) + 102px));
+        max-width: calc(100% - 24px);
+        padding: 12px 17px 11px;
+        font-size: .75rem;
+      }
+      .play-tip {
+        bottom: max(11px, env(safe-area-inset-bottom));
+        width: max-content;
+        max-width: calc(100% - 24px);
+        min-height: 44px;
+        padding: 9px 15px;
+        gap: 8px;
+        font-size: .72rem;
+        line-height: 1.25;
+        letter-spacing: .025em;
+        text-align: left;
+      }
+      .play-tip::before { width: 26px; height: 24px; }
+      .next-level-button {
+        right: max(12px, env(safe-area-inset-right));
+        bottom: max(66px, calc(env(safe-area-inset-bottom) + 58px));
+      }
+
+      .cover { align-items: center; overflow-y: auto; }
+      .cover-card {
+        width: calc(100% - 18px);
+        max-height: calc(100dvh - max(18px, env(safe-area-inset-top)) - max(18px, env(safe-area-inset-bottom)));
+        padding: 13px 15px 18px;
+        border-width: 25px;
+        border-image-width: 25px;
+      }
+      .cover-kicker { font-size: .58rem; letter-spacing: .13em; }
+      .cover h1 { font-size: clamp(2rem, 12vw, 2.85rem); }
+      .cover-copy { margin: 10px auto 12px; font-size: .78rem; line-height: 1.45; }
+      .rule-row { margin-bottom: 14px; }
+      .rule { grid-template-columns: 36px auto; font-size: .66rem; }
+      .rule-icon { width: 36px; height: 36px; }
+      .start-button { min-width: min(210px, 82%); min-height: 48px; }
+    }
+
     @media (max-height: 520px) {
       .cover { padding-block: max(8px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-bottom)); }
       .cover-card {
@@ -1137,6 +1257,8 @@
     let activeBgm = null;
     let bgmFadeToken = 0;
     const reducedAudioByDefault = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const touchFirst = matchMedia("(pointer: coarse)").matches || navigator.maxTouchPoints > 0;
+    const manualControlTip = () => touchFirst ? "拖动游动 · 按住屏幕冲刺" : "移动去吃小鱼 · 按住 Shift / 鼠标冲刺";
     const bgmTracks = { ambient: ambientBgm, chase: chaseBgm };
     const bgmMix = new Map([[ambientBgm, .82], [chaseBgm, 1]]);
     const sfxSources = { small: eatSmallSfx, heavy: eatHeavySfx, bubble: bubblePopSfx, hurt: playerHitSfx };
@@ -1167,6 +1289,10 @@
       ruleRow: document.getElementById("ruleRow")
     };
     ui.nextLevel = document.getElementById("nextLevelButton");
+    if (touchFirst) {
+      ui.tip.textContent = manualControlTip();
+      ui.coverCopy.textContent = "拖动屏幕追着探照灯吃掉不同的小鱼和虾，按住屏幕即可冲刺。躲开刺豚、水母，并在每片海域结尾挑战鲨鱼！";
+    }
 
     const state = {
       mode: "loading",
@@ -1601,7 +1727,7 @@
       ui.nextLevel.classList.remove("visible");
       ui.nextLevel.disabled = true;
       ui.nextLevel.textContent = level === ZONES.length - 1 ? "完成探险 ★" : "前往下一海域 →";
-      ui.tip.textContent = state.autoPlay ? "观赏模式已接管 · 点击画面即可手动游玩" : "移动去吃小鱼 · 按住 Shift / 鼠标冲刺";
+      ui.tip.textContent = state.autoPlay ? "观赏模式已接管 · 点击画面即可手动游玩" : manualControlTip();
       shell.style.setProperty("--water-light-opacity", currentZone().light);
       updateHUD();
     }
@@ -1646,7 +1772,7 @@
       ui.auto.setAttribute("aria-pressed", String(enabled));
       ui.auto.setAttribute("aria-label", enabled ? "关闭水族馆观赏模式" : "开启水族馆观赏模式");
       ui.auto.title = enabled ? "关闭观赏模式" : "水族馆观赏模式";
-      ui.tip.textContent = enabled ? "观赏模式已接管 · 点击画面即可手动游玩" : "移动去吃小鱼 · 按住 Shift / 鼠标冲刺";
+      ui.tip.textContent = enabled ? "观赏模式已接管 · 点击画面即可手动游玩" : manualControlTip();
       if (announce && state.mode === "playing") say(enabled ? "水族馆观赏模式开启，沫沫会自己觅食和躲避危险。" : "已回到手动游玩。", 2300);
       updateHUD();
     }
@@ -2388,18 +2514,20 @@
       cutout.addColorStop(.6, "rgba(0,0,0,.94)");
       cutout.addColorStop(.86, "rgba(0,0,0,.62)");
       cutout.addColorStop(1, "rgba(0,0,0,0)");
+      const nearSpread = 5 * sceneScale;
+      const nearPx = -uy * nearSpread;
+      const nearPy = ux * nearSpread;
+      lightCtx.save();
       lightCtx.fillStyle = cutout;
-      const featherLayers = [[1.16,.16],[1,.22],[.84,.3],[.68,.44]];
-      for (const [widthScale, layerAlpha] of featherLayers) {
-        lightCtx.globalAlpha = layerAlpha;
-        lightCtx.beginPath();
-        lightCtx.moveTo(lampX, lampY);
-        lightCtx.lineTo(endX + px * widthScale, endY + py * widthScale);
-        lightCtx.quadraticCurveTo(endX + ux * 62, endY + uy * 62, endX - px * widthScale, endY - py * widthScale);
-        lightCtx.closePath();
-        lightCtx.fill();
-      }
-      lightCtx.globalAlpha = 1;
+      lightCtx.filter = `blur(${boosting ? 22 : 18}px)`;
+      lightCtx.beginPath();
+      lightCtx.moveTo(lampX + nearPx, lampY + nearPy);
+      lightCtx.lineTo(endX + px, endY + py);
+      lightCtx.quadraticCurveTo(endX + ux * 62, endY + uy * 62, endX - px, endY - py);
+      lightCtx.lineTo(lampX - nearPx, lampY - nearPy);
+      lightCtx.closePath();
+      lightCtx.fill();
+      lightCtx.restore();
       lightCtx.globalCompositeOperation = "source-over";
       ctx.drawImage(lightOverlay, 0, 0);
 
@@ -2410,7 +2538,7 @@
       beam.addColorStop(.52, `rgba(162, 226, 255, ${boosting ? .23 : .16})`);
       beam.addColorStop(1, "rgba(92, 188, 255, 0)");
       ctx.fillStyle = beam;
-      ctx.filter = "blur(7px)";
+      ctx.filter = `blur(${boosting ? 14 : 12}px)`;
       ctx.beginPath();
       ctx.moveTo(lampX, lampY);
       ctx.lineTo(endX + px, endY + py);
@@ -2429,6 +2557,7 @@
       ctx.restore();
       shell.dataset.lightTarget = `${Math.round(player.targetX)},${Math.round(player.targetY)}`;
       shell.dataset.lampAnchor = `${Math.round(lampX)},${Math.round(lampY)}`;
+      shell.dataset.lightFeather = "continuous-mask";
     }
 
     function drawPlayer(time) {
