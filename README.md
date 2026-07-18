@@ -2,6 +2,16 @@
 
 一款可直接部署到 GitHub Pages 的横版等距像素风海底成长小游戏。玩家控制戴着探照灯的小丑鱼“沫沫”，追逐会闪躲的鱼虾，长大后反击刺豚、水母，并在每片海域结尾挑战鲨鱼王。
 
+## 宣传片
+
+[![播放《沫沫的珊瑚午餐》26 秒中文宣传片](trailer/hyperframes-trailer-cover.jpg)](trailer/hyperframes-trailer.mp4)
+
+[播放或下载 26 秒中文宣传片](trailer/hyperframes-trailer.mp4)
+
+宣传片使用游戏中的独立透明素材重新编排为六幕动画，包含追逐成长、危险生物、100% 反击、三片海域与片尾 CTA，并配有中文女声旁白、游戏音乐和动作音效。
+
+制作核心文档：[`DESIGN.md`](trailer/DESIGN.md) · [`SCRIPT.md`](trailer/SCRIPT.md) · [`STORYBOARD.md`](trailer/STORYBOARD.md)
+
 ## 实验目的
 
 这个项目也是一次模型“全自主制作循环”能力测试：从一条完整 Prompt 出发，让模型自主完成概念设计、生图、切图与透明处理、素材验证、游戏开发、浏览器运行、视觉与交互检查、自动修复、离线构建和文档整理。保留 `prompts/`、`workflow/sources/`、`workflow/tools/` 与 `workflow/reports/`，是为了让过程可以复现和审查，而不只是保存最终游戏。
