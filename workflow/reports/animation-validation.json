@@ -1,0 +1,826 @@
+{
+  "frame_size": 256,
+  "sheets": 8,
+  "frames": 48,
+  "passed": 48,
+  "failed": 0,
+  "max_anchor_error": 0.5,
+  "results": [
+    {
+      "sheet": "momo_swim",
+      "frame": 0,
+      "bbox": [
+        24,
+        43,
+        240,
+        212
+      ],
+      "coverage": 0.557,
+      "magenta_pixels": 0,
+      "issues": [],
+      "anchor_error": {
+        "x": 0,
+        "y": 0.5
+      }
+    },
+    {
+      "sheet": "momo_swim",
+      "frame": 1,
+      "bbox": [
+        22,
+        42,
+        240,
+        213
+      ],
+      "coverage": 0.5688,
+      "magenta_pixels": 0,
+      "issues": [],
+      "anchor_error": {
+        "x": 0,
+        "y": 0.5
+      }
+    },
+    {
+      "sheet": "momo_swim",
+      "frame": 2,
+      "bbox": [
+        24,
+        43,
+        240,
+        212
+      ],
+      "coverage": 0.557,
+      "magenta_pixels": 0,
+      "issues": [],
+      "anchor_error": {
+        "x": 0,
+        "y": 0.5
+      }
+    },
+    {
+      "sheet": "momo_swim",
+      "frame": 3,
+      "bbox": [
+        19,
+        43,
+        240,
+        212
+      ],
+      "coverage": 0.5699,
+      "magenta_pixels": 0,
+      "issues": [],
+      "anchor_error": {
+        "x": 0,
+        "y": 0.5
+      }
+    },
+    {
+      "sheet": "momo_swim",
+      "frame": 4,
+      "bbox": [
+        21,
+        43,
+        240,
+        212
+      ],
+      "coverage": 0.5647,
+      "magenta_pixels": 0,
+      "issues": [],
+      "anchor_error": {
+        "x": 0,
+        "y": 0.5
+      }
+    },
+    {
+      "sheet": "momo_swim",
+      "frame": 5,
+      "bbox": [
+        29,
+        43,
+        240,
+        212
+      ],
+      "coverage": 0.5441,
+      "magenta_pixels": 0,
+      "issues": [],
+      "anchor_error": {
+        "x": 0,
+        "y": 0.5
+      }
+    },
+    {
+      "sheet": "lanternfish_swim",
+      "frame": 0,
+      "bbox": [
+        22,
+        50,
+        240,
+        207
+      ],
+      "coverage": 0.5222,
+      "magenta_pixels": 0,
+      "issues": [],
+      "anchor_error": {
+        "x": 0,
+        "y": 0.5
+      }
+    },
+    {
+      "sheet": "lanternfish_swim",
+      "frame": 1,
+      "bbox": [
+        35,
+        50,
+        240,
+        207
+      ],
+      "coverage": 0.4911,
+      "magenta_pixels": 0,
+      "issues": [],
+      "anchor_error": {
+        "x": 0,
+        "y": 0.5
+      }
+    },
+    {
+      "sheet": "lanternfish_swim",
+      "frame": 2,
+      "bbox": [
+        21,
+        50,
+        240,
+        207
+      ],
+      "coverage": 0.5246,
+      "magenta_pixels": 0,
+      "issues": [],
+      "anchor_error": {
+        "x": 0,
+        "y": 0.5
+      }
+    },
+    {
+      "sheet": "lanternfish_swim",
+      "frame": 3,
+      "bbox": [
+        29,
+        50,
+        240,
+        207
+      ],
+      "coverage": 0.5055,
+      "magenta_pixels": 0,
+      "issues": [],
+      "anchor_error": {
+        "x": 0,
+        "y": 0.5
+      }
+    },
+    {
+      "sheet": "lanternfish_swim",
+      "frame": 4,
+      "bbox": [
+        34,
+        50,
+        240,
+        207
+      ],
+      "coverage": 0.4935,
+      "magenta_pixels": 0,
+      "issues": [],
+      "anchor_error": {
+        "x": 0,
+        "y": 0.5
+      }
+    },
+    {
+      "sheet": "lanternfish_swim",
+      "frame": 5,
+      "bbox": [
+        27,
+        50,
+        240,
+        207
+      ],
+      "coverage": 0.5103,
+      "magenta_pixels": 0,
+      "issues": [],
+      "anchor_error": {
+        "x": 0,
+        "y": 0.5
+      }
+    },
+    {
+      "sheet": "butterflyfish_swim",
+      "frame": 0,
+      "bbox": [
+        40,
+        32,
+        240,
+        223
+      ],
+      "coverage": 0.5829,
+      "magenta_pixels": 0,
+      "issues": [],
+      "anchor_error": {
+        "x": 0,
+        "y": 0.5
+      }
+    },
+    {
+      "sheet": "butterflyfish_swim",
+      "frame": 1,
+      "bbox": [
+        48,
+        32,
+        240,
+        223
+      ],
+      "coverage": 0.5596,
+      "magenta_pixels": 0,
+      "issues": [],
+      "anchor_error": {
+        "x": 0,
+        "y": 0.5
+      }
+    },
+    {
+      "sheet": "butterflyfish_swim",
+      "frame": 2,
+      "bbox": [
+        33,
+        32,
+        240,
+        225
+      ],
+      "coverage": 0.6096,
+      "magenta_pixels": 0,
+      "issues": [],
+      "anchor_error": {
+        "x": 0,
+        "y": 0.5
+      }
+    },
+    {
+      "sheet": "butterflyfish_swim",
+      "frame": 3,
+      "bbox": [
+        30,
+        32,
+        240,
+        224
+      ],
+      "coverage": 0.6152,
+      "magenta_pixels": 0,
+      "issues": [],
+      "anchor_error": {
+        "x": 0,
+        "y": 0.0
+      }
+    },
+    {
+      "sheet": "butterflyfish_swim",
+      "frame": 4,
+      "bbox": [
+        42,
+        31,
+        240,
+        224
+      ],
+      "coverage": 0.5831,
+      "magenta_pixels": 0,
+      "issues": [],
+      "anchor_error": {
+        "x": 0,
+        "y": 0.5
+      }
+    },
+    {
+      "sheet": "butterflyfish_swim",
+      "frame": 5,
+      "bbox": [
+        35,
+        29,
+        240,
+        226
+      ],
+      "coverage": 0.6162,
+      "magenta_pixels": 0,
+      "issues": [],
+      "anchor_error": {
+        "x": 0,
+        "y": 0.5
+      }
+    },
+    {
+      "sheet": "sardine_swim",
+      "frame": 0,
+      "bbox": [
+        5,
+        88,
+        240,
+        168
+      ],
+      "coverage": 0.2869,
+      "magenta_pixels": 0,
+      "issues": [],
+      "anchor_error": {
+        "x": 0,
+        "y": 0.0
+      }
+    },
+    {
+      "sheet": "sardine_swim",
+      "frame": 1,
+      "bbox": [
+        7,
+        88,
+        240,
+        168
+      ],
+      "coverage": 0.2844,
+      "magenta_pixels": 0,
+      "issues": [],
+      "anchor_error": {
+        "x": 0,
+        "y": 0.0
+      }
+    },
+    {
+      "sheet": "sardine_swim",
+      "frame": 2,
+      "bbox": [
+        17,
+        86,
+        240,
+        170
+      ],
+      "coverage": 0.2858,
+      "magenta_pixels": 0,
+      "issues": [],
+      "anchor_error": {
+        "x": 0,
+        "y": 0.0
+      }
+    },
+    {
+      "sheet": "sardine_swim",
+      "frame": 3,
+      "bbox": [
+        14,
+        87,
+        240,
+        168
+      ],
+      "coverage": 0.2793,
+      "magenta_pixels": 0,
+      "issues": [],
+      "anchor_error": {
+        "x": 0,
+        "y": 0.5
+      }
+    },
+    {
+      "sheet": "sardine_swim",
+      "frame": 4,
+      "bbox": [
+        9,
+        88,
+        240,
+        168
+      ],
+      "coverage": 0.282,
+      "magenta_pixels": 0,
+      "issues": [],
+      "anchor_error": {
+        "x": 0,
+        "y": 0.0
+      }
+    },
+    {
+      "sheet": "sardine_swim",
+      "frame": 5,
+      "bbox": [
+        8,
+        87,
+        240,
+        168
+      ],
+      "coverage": 0.2867,
+      "magenta_pixels": 0,
+      "issues": [],
+      "anchor_error": {
+        "x": 0,
+        "y": 0.5
+      }
+    },
+    {
+      "sheet": "shrimp_swim",
+      "frame": 0,
+      "bbox": [
+        65,
+        54,
+        240,
+        202
+      ],
+      "coverage": 0.3952,
+      "magenta_pixels": 0,
+      "issues": [],
+      "anchor_error": {
+        "x": 0,
+        "y": 0.0
+      }
+    },
+    {
+      "sheet": "shrimp_swim",
+      "frame": 1,
+      "bbox": [
+        16,
+        60,
+        240,
+        196
+      ],
+      "coverage": 0.4648,
+      "magenta_pixels": 0,
+      "issues": [],
+      "anchor_error": {
+        "x": 0,
+        "y": 0.0
+      }
+    },
+    {
+      "sheet": "shrimp_swim",
+      "frame": 2,
+      "bbox": [
+        41,
+        62,
+        240,
+        194
+      ],
+      "coverage": 0.4008,
+      "magenta_pixels": 0,
+      "issues": [],
+      "anchor_error": {
+        "x": 0,
+        "y": 0.0
+      }
+    },
+    {
+      "sheet": "shrimp_swim",
+      "frame": 3,
+      "bbox": [
+        41,
+        73,
+        240,
+        184
+      ],
+      "coverage": 0.3371,
+      "magenta_pixels": 0,
+      "issues": [],
+      "anchor_error": {
+        "x": 0,
+        "y": 0.5
+      }
+    },
+    {
+      "sheet": "shrimp_swim",
+      "frame": 4,
+      "bbox": [
+        60,
+        60,
+        240,
+        196
+      ],
+      "coverage": 0.3735,
+      "magenta_pixels": 1,
+      "issues": [],
+      "anchor_error": {
+        "x": 0,
+        "y": 0.0
+      }
+    },
+    {
+      "sheet": "shrimp_swim",
+      "frame": 5,
+      "bbox": [
+        41,
+        60,
+        240,
+        195
+      ],
+      "coverage": 0.4099,
+      "magenta_pixels": 1,
+      "issues": [],
+      "anchor_error": {
+        "x": 0,
+        "y": 0.5
+      }
+    },
+    {
+      "sheet": "puffer_pulse",
+      "frame": 0,
+      "bbox": [
+        28,
+        52,
+        228,
+        204
+      ],
+      "coverage": 0.4639,
+      "magenta_pixels": 0,
+      "issues": [],
+      "anchor_error": {
+        "x": 0.0,
+        "y": 0.0
+      }
+    },
+    {
+      "sheet": "puffer_pulse",
+      "frame": 1,
+      "bbox": [
+        30,
+        44,
+        226,
+        211
+      ],
+      "coverage": 0.4995,
+      "magenta_pixels": 0,
+      "issues": [],
+      "anchor_error": {
+        "x": 0.0,
+        "y": 0.5
+      }
+    },
+    {
+      "sheet": "puffer_pulse",
+      "frame": 2,
+      "bbox": [
+        19,
+        31,
+        237,
+        225
+      ],
+      "coverage": 0.6453,
+      "magenta_pixels": 0,
+      "issues": [],
+      "anchor_error": {
+        "x": 0.0,
+        "y": 0.0
+      }
+    },
+    {
+      "sheet": "puffer_pulse",
+      "frame": 3,
+      "bbox": [
+        19,
+        31,
+        238,
+        224
+      ],
+      "coverage": 0.6449,
+      "magenta_pixels": 0,
+      "issues": [],
+      "anchor_error": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    {
+      "sheet": "puffer_pulse",
+      "frame": 4,
+      "bbox": [
+        26,
+        43,
+        229,
+        213
+      ],
+      "coverage": 0.5266,
+      "magenta_pixels": 0,
+      "issues": [],
+      "anchor_error": {
+        "x": 0.5,
+        "y": 0.0
+      }
+    },
+    {
+      "sheet": "puffer_pulse",
+      "frame": 5,
+      "bbox": [
+        28,
+        53,
+        227,
+        204
+      ],
+      "coverage": 0.4585,
+      "magenta_pixels": 1,
+      "issues": [],
+      "anchor_error": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    {
+      "sheet": "jellyfish_pulse",
+      "frame": 0,
+      "bbox": [
+        45,
+        24,
+        201,
+        226
+      ],
+      "coverage": 0.4808,
+      "magenta_pixels": 2,
+      "issues": [],
+      "anchor_error": {
+        "x": 0.30162641695416426,
+        "y": 0
+      }
+    },
+    {
+      "sheet": "jellyfish_pulse",
+      "frame": 1,
+      "bbox": [
+        58,
+        24,
+        189,
+        207
+      ],
+      "coverage": 0.3658,
+      "magenta_pixels": 1,
+      "issues": [],
+      "anchor_error": {
+        "x": 0.22039999999999793,
+        "y": 0
+      }
+    },
+    {
+      "sheet": "jellyfish_pulse",
+      "frame": 2,
+      "bbox": [
+        61,
+        24,
+        181,
+        202
+      ],
+      "coverage": 0.3259,
+      "magenta_pixels": 1,
+      "issues": [],
+      "anchor_error": {
+        "x": 0.11484956324814277,
+        "y": 0
+      }
+    },
+    {
+      "sheet": "jellyfish_pulse",
+      "frame": 3,
+      "bbox": [
+        49,
+        24,
+        193,
+        215
+      ],
+      "coverage": 0.4197,
+      "magenta_pixels": 2,
+      "issues": [],
+      "anchor_error": {
+        "x": 0.1274549641067324,
+        "y": 0
+      }
+    },
+    {
+      "sheet": "jellyfish_pulse",
+      "frame": 4,
+      "bbox": [
+        47,
+        24,
+        199,
+        217
+      ],
+      "coverage": 0.4476,
+      "magenta_pixels": 1,
+      "issues": [],
+      "anchor_error": {
+        "x": 0.3842027625050264,
+        "y": 0
+      }
+    },
+    {
+      "sheet": "jellyfish_pulse",
+      "frame": 5,
+      "bbox": [
+        41,
+        24,
+        221,
+        214
+      ],
+      "coverage": 0.5219,
+      "magenta_pixels": 0,
+      "issues": [],
+      "anchor_error": {
+        "x": 0.43050397877983926,
+        "y": 0
+      }
+    },
+    {
+      "sheet": "shark_boss",
+      "frame": 0,
+      "bbox": [
+        1,
+        61,
+        240,
+        195
+      ],
+      "coverage": 0.4887,
+      "magenta_pixels": 0,
+      "issues": [],
+      "anchor_error": {
+        "x": 0,
+        "y": 0.0
+      }
+    },
+    {
+      "sheet": "shark_boss",
+      "frame": 1,
+      "bbox": [
+        10,
+        61,
+        240,
+        194
+      ],
+      "coverage": 0.4668,
+      "magenta_pixels": 0,
+      "issues": [],
+      "anchor_error": {
+        "x": 0,
+        "y": 0.5
+      }
+    },
+    {
+      "sheet": "shark_boss",
+      "frame": 2,
+      "bbox": [
+        18,
+        61,
+        240,
+        194
+      ],
+      "coverage": 0.4505,
+      "magenta_pixels": 0,
+      "issues": [],
+      "anchor_error": {
+        "x": 0,
+        "y": 0.5
+      }
+    },
+    {
+      "sheet": "shark_boss",
+      "frame": 3,
+      "bbox": [
+        4,
+        59,
+        240,
+        197
+      ],
+      "coverage": 0.4969,
+      "magenta_pixels": 0,
+      "issues": [],
+      "anchor_error": {
+        "x": 0,
+        "y": 0.0
+      }
+    },
+    {
+      "sheet": "shark_boss",
+      "frame": 4,
+      "bbox": [
+        7,
+        61,
+        240,
+        195
+      ],
+      "coverage": 0.4764,
+      "magenta_pixels": 1,
+      "issues": [],
+      "anchor_error": {
+        "x": 0,
+        "y": 0.0
+      }
+    },
+    {
+      "sheet": "shark_boss",
+      "frame": 5,
+      "bbox": [
+        8,
+        61,
+        240,
+        195
+      ],
+      "coverage": 0.4744,
+      "magenta_pixels": 0,
+      "issues": [],
+      "anchor_error": {
+        "x": 0,
+        "y": 0.0
+      }
+    }
+  ]
+}

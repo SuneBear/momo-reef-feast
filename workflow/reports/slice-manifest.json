@@ -1,0 +1,194 @@
+[
+  {
+    "name": "growth_frame_left",
+    "size": [
+      76,
+      147
+    ],
+    "file": "assets/ui/slices/growth_frame_left.png"
+  },
+  {
+    "name": "growth_frame_mid",
+    "size": [
+      8,
+      147
+    ],
+    "file": "assets/ui/slices/growth_frame_mid.png"
+  },
+  {
+    "name": "growth_frame_right",
+    "size": [
+      76,
+      147
+    ],
+    "file": "assets/ui/slices/growth_frame_right.png"
+  },
+  {
+    "name": "lives_panel_left",
+    "size": [
+      60,
+      187
+    ],
+    "file": "assets/ui/slices/lives_panel_left.png"
+  },
+  {
+    "name": "lives_panel_mid",
+    "size": [
+      8,
+      187
+    ],
+    "file": "assets/ui/slices/lives_panel_mid.png"
+  },
+  {
+    "name": "lives_panel_right",
+    "size": [
+      60,
+      187
+    ],
+    "file": "assets/ui/slices/lives_panel_right.png"
+  },
+  {
+    "name": "toast_panel_left",
+    "size": [
+      65,
+      169
+    ],
+    "file": "assets/ui/slices/toast_panel_left.png"
+  },
+  {
+    "name": "toast_panel_mid",
+    "size": [
+      8,
+      169
+    ],
+    "file": "assets/ui/slices/toast_panel_mid.png"
+  },
+  {
+    "name": "toast_panel_right",
+    "size": [
+      65,
+      169
+    ],
+    "file": "assets/ui/slices/toast_panel_right.png"
+  },
+  {
+    "name": "tip_panel_left",
+    "size": [
+      55,
+      161
+    ],
+    "file": "assets/ui/slices/tip_panel_left.png"
+  },
+  {
+    "name": "tip_panel_mid",
+    "size": [
+      8,
+      161
+    ],
+    "file": "assets/ui/slices/tip_panel_mid.png"
+  },
+  {
+    "name": "tip_panel_right",
+    "size": [
+      55,
+      161
+    ],
+    "file": "assets/ui/slices/tip_panel_right.png"
+  },
+  {
+    "name": "action_button_left",
+    "size": [
+      60,
+      180
+    ],
+    "file": "assets/ui/slices/action_button_left.png"
+  },
+  {
+    "name": "action_button_mid",
+    "size": [
+      8,
+      180
+    ],
+    "file": "assets/ui/slices/action_button_mid.png"
+  },
+  {
+    "name": "action_button_right",
+    "size": [
+      60,
+      180
+    ],
+    "file": "assets/ui/slices/action_button_right.png"
+  },
+  {
+    "name": "dialog_panel_tl",
+    "size": [
+      74,
+      74
+    ],
+    "file": "assets/ui/slices/dialog_panel_tl.png"
+  },
+  {
+    "name": "dialog_panel_t",
+    "size": [
+      149,
+      74
+    ],
+    "file": "assets/ui/slices/dialog_panel_t.png"
+  },
+  {
+    "name": "dialog_panel_tr",
+    "size": [
+      74,
+      74
+    ],
+    "file": "assets/ui/slices/dialog_panel_tr.png"
+  },
+  {
+    "name": "dialog_panel_l",
+    "size": [
+      74,
+      155
+    ],
+    "file": "assets/ui/slices/dialog_panel_l.png"
+  },
+  {
+    "name": "dialog_panel_c",
+    "size": [
+      149,
+      155
+    ],
+    "file": "assets/ui/slices/dialog_panel_c.png"
+  },
+  {
+    "name": "dialog_panel_r",
+    "size": [
+      74,
+      155
+    ],
+    "file": "assets/ui/slices/dialog_panel_r.png"
+  },
+  {
+    "name": "dialog_panel_bl",
+    "size": [
+      74,
+      74
+    ],
+    "file": "assets/ui/slices/dialog_panel_bl.png"
+  },
+  {
+    "name": "dialog_panel_b",
+    "size": [
+      149,
+      74
+    ],
+    "file": "assets/ui/slices/dialog_panel_b.png"
+  },
+  {
+    "name": "dialog_panel_br",
+    "size": [
+      74,
+      74
+    ],
+    "file": "assets/ui/slices/dialog_panel_br.png"
+  }
+]

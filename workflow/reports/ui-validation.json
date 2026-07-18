@@ -1,0 +1,206 @@
+[
+  {
+    "name": "hud_panel",
+    "size": [
+      262,
+      276
+    ],
+    "visible_pixels": 57268,
+    "magenta_pixels": 0,
+    "touches_edge": false,
+    "status": "pass",
+    "issues": []
+  },
+  {
+    "name": "growth_frame",
+    "size": [
+      350,
+      147
+    ],
+    "visible_pixels": 33282,
+    "magenta_pixels": 0,
+    "touches_edge": false,
+    "status": "pass",
+    "issues": []
+  },
+  {
+    "name": "lives_panel",
+    "size": [
+      249,
+      187
+    ],
+    "visible_pixels": 32624,
+    "magenta_pixels": 0,
+    "touches_edge": false,
+    "status": "pass",
+    "issues": []
+  },
+  {
+    "name": "round_button",
+    "size": [
+      261,
+      263
+    ],
+    "visible_pixels": 44507,
+    "magenta_pixels": 0,
+    "touches_edge": false,
+    "status": "pass",
+    "issues": []
+  },
+  {
+    "name": "dialog_panel",
+    "size": [
+      297,
+      303
+    ],
+    "visible_pixels": 71749,
+    "magenta_pixels": 0,
+    "touches_edge": false,
+    "status": "pass",
+    "issues": []
+  },
+  {
+    "name": "toast_panel",
+    "size": [
+      311,
+      169
+    ],
+    "visible_pixels": 35711,
+    "magenta_pixels": 0,
+    "touches_edge": false,
+    "status": "pass",
+    "issues": []
+  },
+  {
+    "name": "tip_panel",
+    "size": [
+      299,
+      161
+    ],
+    "visible_pixels": 34723,
+    "magenta_pixels": 0,
+    "touches_edge": false,
+    "status": "pass",
+    "issues": []
+  },
+  {
+    "name": "action_button",
+    "size": [
+      290,
+      180
+    ],
+    "visible_pixels": 35797,
+    "magenta_pixels": 0,
+    "touches_edge": false,
+    "status": "pass",
+    "issues": []
+  },
+  {
+    "name": "icon_star",
+    "size": [
+      246,
+      233
+    ],
+    "visible_pixels": 29970,
+    "magenta_pixels": 0,
+    "touches_edge": false,
+    "status": "pass",
+    "issues": []
+  },
+  {
+    "name": "icon_heart",
+    "size": [
+      241,
+      215
+    ],
+    "visible_pixels": 34369,
+    "magenta_pixels": 0,
+    "touches_edge": false,
+    "status": "pass",
+    "issues": []
+  },
+  {
+    "name": "icon_pause",
+    "size": [
+      212,
+      217
+    ],
+    "visible_pixels": 31320,
+    "magenta_pixels": 0,
+    "touches_edge": false,
+    "status": "pass",
+    "issues": []
+  },
+  {
+    "name": "icon_music",
+    "size": [
+      200,
+      226
+    ],
+    "visible_pixels": 24118,
+    "magenta_pixels": 0,
+    "touches_edge": false,
+    "status": "pass",
+    "issues": []
+  },
+  {
+    "name": "icon_play",
+    "size": [
+      185,
+      226
+    ],
+    "visible_pixels": 23933,
+    "magenta_pixels": 0,
+    "touches_edge": false,
+    "status": "pass",
+    "issues": []
+  },
+  {
+    "name": "icon_boost",
+    "size": [
+      241,
+      191
+    ],
+    "visible_pixels": 27439,
+    "magenta_pixels": 0,
+    "touches_edge": false,
+    "status": "pass",
+    "issues": []
+  },
+  {
+    "name": "icon_pearl",
+    "size": [
+      213,
+      217
+    ],
+    "visible_pixels": 31708,
+    "magenta_pixels": 0,
+    "touches_edge": false,
+    "status": "pass",
+    "issues": []
+  },
+  {
+    "name": "icon_warning",
+    "size": [
+      233,
+      224
+    ],
+    "visible_pixels": 30542,
+    "magenta_pixels": 0,
+    "touches_edge": false,
+    "status": "pass",
+    "issues": []
+  },
+  {
+    "name": "icon_growth",
+    "size": [
+      628,
+      741
+    ],
+    "visible_pixels": 261274,
+    "magenta_pixels": 0,
+    "touches_edge": false,
+    "status": "pass",
+    "issues": []
+  }
+]

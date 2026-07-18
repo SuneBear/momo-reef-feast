@@ -1,0 +1,2649 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0754bd">
+  <title>沫沫的珊瑚午餐 · 横版小鱼成长游戏</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --deep: #062f80;
+      --ocean: oklch(48% .13 214);
+      --foam: oklch(93% .07 184);
+      --sun: oklch(86% .16 88);
+      --coral: oklch(73% .19 42);
+      --ink: oklch(17% .05 244);
+    }
+
+    * { box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; background: var(--deep); }
+
+    body {
+      color: var(--foam);
+      font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC", system-ui, sans-serif;
+      font-synthesis: none;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    button { font: inherit; }
+
+    .game-shell {
+      width: 100%;
+      height: 100dvh;
+      min-height: 420px;
+      position: relative;
+      overflow: hidden;
+      background: #0754bd;
+      isolation: isolate;
+    }
+
+    .game-shell::before {
+      content: "";
+      position: absolute;
+      z-index: 3;
+      inset: -8% -6%;
+      pointer-events: none;
+      background:
+        radial-gradient(ellipse at 18% 4%, rgba(151, 229, 255, .24) 0 3%, transparent 18%),
+        radial-gradient(ellipse at 52% -2%, rgba(151, 229, 255, .18) 0 4%, transparent 22%),
+        radial-gradient(ellipse at 84% 8%, rgba(151, 229, 255, .2) 0 3%, transparent 19%);
+      mix-blend-mode: screen;
+      opacity: .58;
+      -webkit-mask-image: linear-gradient(to bottom, #000, rgba(0,0,0,.38) 58%, transparent 88%);
+      mask-image: linear-gradient(to bottom, #000, rgba(0,0,0,.38) 58%, transparent 88%);
+      animation: causticDrift 8s ease-in-out infinite alternate;
+    }
+
+    @keyframes causticDrift { to { transform: translate3d(3%, 2%, 0) scale(1.04); opacity: .42; } }
+
+    #gameCanvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      image-rendering: pixelated;
+      touch-action: none;
+      cursor: crosshair;
+    }
+
+    .water-source {
+      position: absolute;
+      z-index: 2;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      pointer-events: none;
+      image-rendering: pixelated;
+      mix-blend-mode: screen;
+      opacity: var(--water-light-opacity, .2);
+      filter: saturate(.18) contrast(1.5) brightness(.82);
+      -webkit-mask-image: linear-gradient(to bottom, #000 0%, rgba(0,0,0,.94) 42%, rgba(0,0,0,.58) 73%, transparent 100%);
+      mask-image: linear-gradient(to bottom, #000 0%, rgba(0,0,0,.94) 42%, rgba(0,0,0,.58) 73%, transparent 100%);
+      contain: strict;
+    }
+
+    .water-light { display: none; }
+
+    .hurt-flash {
+      position: absolute;
+      z-index: 8;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0;
+      background: radial-gradient(circle at center, transparent 35%, rgba(255, 91, 91, .18) 68%, rgba(255, 56, 65, .62) 100%);
+      mix-blend-mode: screen;
+    }
+
+    .hud {
+      position: absolute;
+      z-index: 10;
+      top: max(14px, env(safe-area-inset-top));
+      left: max(14px, env(safe-area-inset-left));
+      right: max(14px, env(safe-area-inset-right));
+      display: grid;
+      grid-template-columns: auto minmax(220px, 440px) auto;
+      align-items: start;
+      justify-content: space-between;
+      gap: 16px;
+      pointer-events: none;
+    }
+
+    .score-bubble,
+    .lives,
+    .growth-wrap,
+    .round-button,
+    .volume-wrap {
+      background: oklch(18% .055 242 / .82);
+      border: 2px solid oklch(88% .08 185 / .78);
+      box-shadow: 0 5px 0 oklch(12% .045 246 / .55);
+      backdrop-filter: blur(4px);
+    }
+
+    .score-bubble {
+      min-width: 112px;
+      height: 54px;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 0 15px;
+      border-radius: 28px 22px 28px 18px;
+    }
+
+    .score-bubble .star { color: var(--sun); font-size: 1.45rem; filter: drop-shadow(2px 2px 0 var(--ink)); }
+    .score-copy { display: grid; line-height: 1; }
+    .score-copy small { margin-bottom: 5px; color: oklch(82% .08 185); font-size: .66rem; font-weight: 700; letter-spacing: .12em; }
+    .score-copy strong { font-size: 1.18rem; font-variant-numeric: tabular-nums; }
+
+    .growth-wrap {
+      width: min(440px, 42vw);
+      min-height: 66px;
+      padding: 15px 13px 11px;
+      border-radius: 18px 26px 20px 24px;
+    }
+
+    .growth-label { display: flex; justify-content: space-between; align-items: center; margin-bottom: 7px; font-size: .76rem; font-weight: 700; letter-spacing: .04em; }
+    .growth-label strong { color: var(--sun); font-size: .86rem; }
+
+    .growth-track {
+      height: 17px;
+      padding: 3px;
+      overflow: hidden;
+      background: oklch(13% .05 245);
+      border: 1px solid oklch(73% .08 193);
+      border-radius: 999px;
+    }
+
+    .growth-fill {
+      width: 0;
+      height: 100%;
+      border-radius: inherit;
+      background: repeating-linear-gradient(90deg, var(--sun) 0 15px, oklch(80% .18 65) 15px 18px);
+      box-shadow: 0 0 10px oklch(86% .16 88 / .42);
+      transform-origin: left;
+      transition: width .28s ease-out;
+    }
+
+    .hud-right { display: flex; gap: 9px; pointer-events: auto; }
+
+    .lives {
+      height: 54px;
+      min-width: 118px;
+      padding: 0 13px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      border-radius: 24px 29px 19px 27px;
+      pointer-events: none;
+    }
+
+    .heart {
+      width: 25px;
+      height: 25px;
+      border: 3px solid oklch(94% .08 193);
+      border-radius: 50%;
+      background: radial-gradient(circle at 32% 28%, oklch(98% .03 190) 0 13%, oklch(74% .13 205) 15% 46%, oklch(54% .14 220) 48% 100%);
+      box-shadow: inset -3px -3px 0 oklch(35% .11 229 / .48), 0 0 0 2px oklch(14% .04 250 / .3);
+      transition: opacity .2s, transform .2s;
+    }
+
+    .heart.empty { opacity: .18; transform: scale(.72); }
+
+    .round-button {
+      width: 54px;
+      height: 54px;
+      padding: 0;
+      border-radius: 50%;
+      color: var(--foam);
+      cursor: pointer;
+      font-size: 1.1rem;
+      font-weight: 950;
+    }
+
+    .round-button:hover, .round-button:focus-visible { background: oklch(35% .11 218 / .92); border-color: var(--sun); }
+    .round-button:active { transform: translateY(3px); box-shadow: 0 2px 0 oklch(12% .045 246 / .55); }
+
+    .play-tip {
+      position: absolute;
+      z-index: 9;
+      left: 50%;
+      bottom: max(17px, env(safe-area-inset-bottom));
+      transform: translateX(-50%);
+      padding: 10px 17px;
+      border-radius: 999px;
+      background: oklch(18% .055 242 / .78);
+      border: 1px solid oklch(86% .08 185 / .62);
+      color: oklch(91% .065 185);
+      font-size: .76rem;
+      font-weight: 700;
+      letter-spacing: .05em;
+      pointer-events: none;
+      transition: opacity .3s;
+    }
+
+    .next-level-button {
+      position: absolute;
+      z-index: 15;
+      right: max(22px, env(safe-area-inset-right));
+      bottom: max(22px, env(safe-area-inset-bottom));
+      min-height: 54px;
+      padding: 0 22px;
+      border: 2px solid var(--ink);
+      border-radius: 24px 16px 25px 14px;
+      background: var(--sun);
+      color: var(--ink);
+      box-shadow: 6px 6px 0 var(--ink);
+      font-weight: 750;
+      letter-spacing: .06em;
+      cursor: pointer;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(14px) scale(.96);
+      transition: opacity .28s cubic-bezier(.25,1,.5,1), transform .28s cubic-bezier(.25,1,.5,1);
+    }
+
+    .next-level-button.visible {
+      opacity: 1;
+      pointer-events: auto;
+      transform: none;
+    }
+
+    .next-level-button:hover,
+    .next-level-button:focus-visible { transform: translate(-2px, -2px); box-shadow: 8px 8px 0 var(--ink); }
+    .next-level-button:active { transform: translateY(2px); box-shadow: 3px 3px 0 var(--ink); }
+
+    [data-powered="true"] .growth-wrap { animation: powerPulse 1.1s ease-in-out infinite; border-color: var(--sun); }
+    [data-powered="true"] .growth-fill { background: repeating-linear-gradient(90deg, #fff2a6 0 12px, #ffbd2e 12px 18px); }
+    @keyframes powerPulse { 50% { transform: translateY(-1px) scale(1.015); } }
+
+    .toast {
+      position: absolute;
+      z-index: 12;
+      left: 50%;
+      top: 104px;
+      transform: translate(-50%, -12px) scale(.96);
+      max-width: min(520px, calc(100% - 32px));
+      padding: 11px 17px;
+      border-radius: 18px 22px 18px 8px;
+      background: var(--sun);
+      color: var(--ink);
+      font-weight: 750;
+      text-align: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .2s ease-out, transform .2s ease-out;
+      box-shadow: 5px 5px 0 oklch(14% .04 250 / .35);
+    }
+
+    .toast.show { opacity: 1; transform: translate(-50%, 0) scale(1); }
+
+    .cover {
+      position: absolute;
+      inset: 0;
+      z-index: 30;
+      display: grid;
+      place-items: center;
+      padding: max(22px, env(safe-area-inset-top)) max(18px, env(safe-area-inset-right)) max(22px, env(safe-area-inset-bottom)) max(18px, env(safe-area-inset-left));
+      background: linear-gradient(180deg, oklch(28% .105 220 / .78), oklch(15% .06 244 / .9));
+      transition: opacity .34s ease-out, visibility .34s;
+    }
+
+    .cover.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+
+    .cover-card {
+      width: min(620px, 100%);
+      text-align: center;
+      padding: clamp(26px, 6vw, 54px);
+      border-radius: 46px 32px 58px 28px;
+      background: oklch(28% .085 222 / .96);
+      border: 3px solid oklch(89% .09 184);
+      box-shadow: 0 13px 0 oklch(12% .05 246 / .55), inset 0 0 0 7px oklch(52% .11 208 / .28);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .cover-card::before,
+    .cover-card::after {
+      content: "";
+      position: absolute;
+      border: 3px solid oklch(90% .07 184 / .28);
+      border-radius: 50%;
+    }
+
+    .cover-card::before { width: 64px; height: 64px; top: -22px; right: 52px; }
+    .cover-card::after { width: 26px; height: 26px; top: 46px; right: 27px; }
+    .cover-kicker { margin: 0 0 7px; color: var(--sun); font-size: .72rem; font-weight: 650; letter-spacing: .17em; }
+    .cover h1 { margin: 0; color: oklch(96% .055 91); font-size: clamp(2.25rem, 8vw, 4.8rem); line-height: .98; letter-spacing: .03em; text-shadow: 5px 5px 0 var(--ink); }
+    .cover h1 span { color: var(--coral); }
+    .cover-copy { margin: 18px auto 21px; max-width: 34rem; color: oklch(91% .07 184); font-size: clamp(.92rem, 2vw, 1.08rem); line-height: 1.75; font-weight: 650; }
+
+    .rule-row { display: flex; justify-content: center; gap: 26px; margin: 0 0 24px; }
+    .rule { display: grid; grid-template-columns: 54px auto; align-items: center; gap: 8px; text-align: left; color: var(--foam); font-size: .8rem; font-weight: 700; }
+    .rule-icon { width: 54px; height: 54px; background-repeat: no-repeat; background-size: 600% 100%; background-position: 0 0; image-rendering: pixelated; }
+    .rule.good b { color: var(--sun); }
+    .rule.bad b { color: var(--coral); }
+
+    .start-button {
+      min-width: 190px;
+      min-height: 58px;
+      padding: 0 26px;
+      border: 2px solid var(--ink);
+      border-radius: 26px 18px 27px 16px;
+      background: var(--sun);
+      color: var(--ink);
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: 750;
+      letter-spacing: .08em;
+      box-shadow: 7px 7px 0 var(--ink);
+    }
+
+    .start-button:hover, .start-button:focus-visible { background: var(--coral); transform: translate(-2px, -2px); box-shadow: 9px 9px 0 var(--ink); }
+    .start-button:disabled { cursor: wait; filter: saturate(.2); opacity: .7; }
+    :focus-visible { outline: 3px solid var(--sun); outline-offset: 3px; }
+
+    /* Generated pixel UI skin. CSS now positions the assets; it does not draw the chrome. */
+    .score-bubble,
+    .lives,
+    .growth-wrap,
+    .round-button,
+    .volume-wrap,
+    .play-tip,
+    .next-level-button,
+    .toast,
+    .cover-card,
+    .start-button {
+      image-rendering: pixelated;
+      background-color: transparent;
+      background-repeat: no-repeat;
+      background-position: center;
+      background-size: 100% 100%;
+      border: 0;
+      border-radius: 0;
+      box-shadow: none;
+      backdrop-filter: none;
+    }
+
+    .score-bubble {
+      min-width: 132px;
+      height: 68px;
+      padding: 0 21px 0 18px;
+      background-image: var(--ui-hud-panel);
+    }
+
+    .score-bubble .star {
+      flex: 0 0 31px;
+      width: 31px;
+      height: 31px;
+      overflow: hidden;
+      color: transparent;
+      font-size: 0;
+      background: var(--ui-icon-star) center / contain no-repeat;
+      filter: drop-shadow(2px 2px 0 rgba(2, 17, 66, .8));
+    }
+
+    .growth-wrap {
+      width: min(470px, 44vw);
+      min-height: 74px;
+      padding: 16px 40px 17px;
+      background-image: var(--ui-growth-frame);
+    }
+
+    .growth-track {
+      border: 3px solid #061a45;
+      background: #041534;
+      box-shadow: inset 0 2px 0 rgba(126, 220, 239, .22);
+    }
+
+    .lives {
+      min-width: 130px;
+      height: 68px;
+      padding: 5px 20px 0;
+      background-image: var(--ui-lives-panel);
+    }
+
+    .heart {
+      width: 28px;
+      height: 28px;
+      border: 0;
+      border-radius: 0;
+      background: var(--ui-icon-heart) center / contain no-repeat;
+      box-shadow: none;
+      image-rendering: pixelated;
+    }
+
+    .round-button {
+      position: relative;
+      width: 62px;
+      height: 62px;
+      overflow: visible;
+      background-image: var(--ui-round-button);
+      color: transparent;
+      font-size: 0;
+      transition: transform .13s ease, filter .13s ease;
+    }
+
+    .round-button::after {
+      content: "";
+      position: absolute;
+      inset: 17px;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-size: contain;
+      image-rendering: pixelated;
+    }
+
+    #pauseButton::after { background-image: var(--ui-icon-pause); }
+    #pauseButton[aria-label="继续游戏"]::after { background-image: var(--ui-icon-play); }
+    #autoButton::after { inset: 11px; background-image: var(--ui-icon-watch); }
+    #soundButton::after { background-image: var(--ui-icon-music); }
+    [data-sound="off"] #soundButton::after { opacity: .32; filter: grayscale(1); }
+    [data-autoplay="true"] #autoButton {
+      filter: brightness(1.2) saturate(1.18);
+      box-shadow: inset 0 0 0 2px rgba(255, 229, 118, .82), 0 0 0 3px rgba(4, 32, 75, .56), 0 7px 18px rgba(255, 194, 73, .25);
+    }
+    [data-autoplay="true"] #autoButton::after { filter: brightness(1.14) saturate(1.12); }
+    .round-button:hover, .round-button:focus-visible { background-image: var(--ui-round-button); filter: brightness(1.16); }
+    .round-button:active { transform: translateY(3px) scale(.96); }
+
+    .volume-wrap {
+      width: 116px;
+      height: 62px;
+      padding: 10px 20px 9px;
+      background-image: var(--ui-tip-panel);
+    }
+
+    .play-tip {
+      min-height: 56px;
+      padding: 16px 27px 13px 56px;
+      background-image: var(--ui-tip-panel);
+      color: #fff4cf;
+      text-shadow: 2px 2px 0 #061a45;
+    }
+
+    .play-tip::before {
+      content: "";
+      position: absolute;
+      left: 19px;
+      top: 50%;
+      width: 31px;
+      height: 27px;
+      transform: translateY(-50%);
+      background: var(--ui-icon-boost) center / contain no-repeat;
+      image-rendering: pixelated;
+    }
+
+    .next-level-button,
+    .start-button {
+      min-height: 64px;
+      padding: 0 50px 0 28px;
+      background-image: var(--ui-action-button);
+      color: #fff4cf;
+      text-shadow: 2px 2px 0 #061a45;
+      transition: opacity .22s ease, transform .18s ease, filter .18s ease;
+    }
+    .next-level-button { position: absolute; }
+    .start-button { position: relative; }
+
+    .next-level-button::after,
+    .start-button::after {
+      content: "";
+      position: absolute;
+      right: 18px;
+      top: 50%;
+      width: 25px;
+      height: 29px;
+      transform: translateY(-50%);
+      background: var(--ui-icon-play) center / contain no-repeat;
+      image-rendering: pixelated;
+    }
+
+    .next-level-button:hover,
+    .next-level-button:focus-visible,
+    .start-button:hover,
+    .start-button:focus-visible { background-image: var(--ui-action-button); filter: brightness(1.14); transform: translateY(-2px); box-shadow: none; }
+    .next-level-button:active,
+    .start-button:active { transform: translateY(3px) scale(.98); box-shadow: none; }
+
+    .toast {
+      min-height: 68px;
+      padding: 21px 50px 17px;
+      background-image: var(--ui-toast-panel);
+      color: #fff4cf;
+      text-shadow: 2px 2px 0 #061a45;
+    }
+
+    .cover { background: rgba(2, 18, 57, .72); backdrop-filter: blur(2px); }
+    .cover-card {
+      padding: clamp(58px, 7vw, 82px) clamp(60px, 8vw, 94px);
+      background-image: var(--ui-dialog-panel);
+      overflow: visible;
+    }
+    .cover-card::before, .cover-card::after { display: none; }
+
+    /* Final skin overrides: soft, rounded controls and a clean border-image edge. */
+    .cover-card {
+      background-clip: padding-box;
+      box-shadow: none;
+      overflow: visible;
+    }
+    .score-bubble,
+    .growth-wrap,
+    .lives,
+    .volume-wrap,
+    .play-tip,
+    .toast {
+      clip-path: none;
+      border: 2px solid rgba(111, 229, 231, .82);
+      box-shadow: inset 0 0 0 3px rgba(3, 23, 55, .76), 0 4px 0 rgba(2, 18, 48, .34);
+    }
+    .score-bubble { border-radius: 24px 29px 25px 21px; }
+    .growth-wrap { border-radius: 25px 31px 27px 22px; }
+    .lives { border-radius: 30px 25px 29px 23px; }
+    .volume-wrap { border-radius: 23px 28px 22px 26px; }
+    .play-tip { border-radius: 25px 30px 23px 28px; }
+    .toast { border-radius: 26px 32px 24px 29px; }
+    .growth-track, .growth-fill { clip-path: none; border-radius: 999px; }
+    .round-button {
+      clip-path: none;
+      border: 2px solid rgba(111, 229, 231, .88);
+      border-radius: 50%;
+    }
+    .next-level-button,
+    .start-button {
+      clip-path: none;
+      overflow: hidden;
+      border: 2px solid #823b3e;
+      border-radius: 999px;
+      background: linear-gradient(180deg, #ffe07a 0%, #ffba56 55%, #ff8a4c 100%);
+      box-shadow: inset 0 -5px 0 rgba(139, 47, 42, .18), 0 5px 0 rgba(2, 18, 48, .4);
+      transition: transform .16s ease, filter .16s ease, box-shadow .16s ease;
+    }
+    .next-level-button:hover,
+    .next-level-button:focus-visible,
+    .start-button:hover,
+    .start-button:focus-visible {
+      clip-path: none;
+      border-radius: 999px;
+      background: linear-gradient(180deg, #ffe88d 0%, #ffc466 55%, #ff9756 100%) !important;
+      filter: brightness(1.04) saturate(1.04);
+      transform: translateY(-1px) scale(1.015);
+      box-shadow: inset 0 -4px 0 rgba(139, 47, 42, .14), 0 7px 0 rgba(2, 18, 48, .35);
+    }
+    .next-level-button:active,
+    .start-button:active { transform: translateY(3px) scale(.99); box-shadow: inset 0 -2px 0 rgba(139, 47, 42, .14), 0 2px 0 rgba(2, 18, 48, .38); }
+
+    /* In-game chrome follows the soft bubble language of the characters. */
+    .score-bubble,
+    .growth-wrap,
+    .lives,
+    .volume-wrap,
+    .play-tip,
+    .toast {
+      clip-path: none;
+      border: 2px solid rgba(111, 229, 231, .82);
+      box-shadow: inset 0 0 0 3px rgba(3, 23, 55, .78), 0 4px 0 rgba(2, 18, 48, .4);
+    }
+    .score-bubble { border-radius: 23px 28px 25px 20px; }
+    .growth-wrap { border-radius: 24px 30px 26px 21px; }
+    .lives { border-radius: 29px 24px 28px 22px; }
+    .volume-wrap { border-radius: 22px 27px 21px 25px; }
+    .play-tip { border-radius: 24px 29px 22px 27px; }
+    .toast { border-radius: 25px 31px 23px 28px; }
+    .growth-track { clip-path: none; border-radius: 999px; }
+    .growth-fill { border-radius: inherit; }
+
+    .round-button {
+      clip-path: none;
+      border: 2px solid rgba(111, 229, 231, .86);
+      border-radius: 50%;
+      box-shadow: inset 0 0 0 3px #04254d, 0 4px 0 rgba(2, 18, 48, .45);
+    }
+
+    .next-level-button,
+    .start-button {
+      clip-path: none;
+      border: 2px solid #71313a;
+      border-radius: 22px 28px 23px 26px;
+      box-shadow: inset 0 -5px 0 rgba(138, 45, 42, .18), 0 5px 0 rgba(2, 18, 48, .45);
+    }
+    .cover h1 { font-size: clamp(2.1rem, 7vw, 4.35rem); }
+    .rule-icon { background-position: center; background-size: contain; }
+
+    /* Traditional game slicing: decorated caps/corners never stretch. */
+    .score-bubble,
+    .growth-wrap,
+    .lives,
+    .volume-wrap,
+    .play-tip,
+    .next-level-button,
+    .toast,
+    .start-button {
+      background-position: left center, right center, center;
+      background-repeat: no-repeat, no-repeat, repeat-x;
+      background-size: auto 100%, auto 100%, auto 100%;
+    }
+
+    .score-bubble,
+    .toast {
+      background-image: var(--ui-toast-panel-left), var(--ui-toast-panel-right), var(--ui-toast-panel-mid);
+    }
+    .score-bubble { padding: 0 28px; }
+
+    .growth-wrap {
+      background-image: var(--ui-growth-frame-left), var(--ui-growth-frame-right), var(--ui-growth-frame-mid);
+      padding: 15px 45px 16px;
+    }
+    .growth-label { margin-bottom: 6px; line-height: 1.15; }
+
+    .lives,
+    .volume-wrap,
+    .play-tip {
+      background-image: var(--ui-tip-panel-left), var(--ui-tip-panel-right), var(--ui-tip-panel-mid);
+    }
+    .lives { padding-inline: 27px; }
+
+    .next-level-button,
+    .start-button {
+      background-image: var(--ui-action-button-left), var(--ui-action-button-right), var(--ui-action-button-mid);
+    }
+
+    .next-level-button:hover,
+    .next-level-button:focus-visible,
+    .start-button:hover,
+    .start-button:focus-visible {
+      background-image: var(--ui-action-button-left), var(--ui-action-button-right), var(--ui-action-button-mid);
+      background-color: transparent !important;
+    }
+
+    .cover-card {
+      width: min(660px, calc(100% - 24px));
+      padding: 86px 88px 94px;
+      background-image: none;
+    }
+    .cover-kicker { margin-bottom: 10px; }
+    .cover h1 { font-size: clamp(2.1rem, 6vw, 3.75rem); line-height: 1.02; }
+    .cover-copy { max-width: 430px; margin: 18px auto 20px; line-height: 1.62; }
+    .rule-row { margin-bottom: 20px; }
+    .start-button { min-width: 218px; }
+    .nine-slice-layer {
+      position: absolute;
+      z-index: 0;
+      inset: 0;
+      display: grid;
+      grid-template-columns: 64px minmax(0, 1fr) 64px;
+      grid-template-rows: 64px minmax(0, 1fr) 64px;
+      pointer-events: none;
+      image-rendering: pixelated;
+    }
+    .nine-slice-layer i { display: block; background-position: center; background-size: 100% 100%; background-repeat: no-repeat; }
+    .nine-slice-layer .tl { background-image: var(--ui-dialog-panel-tl); }
+    .nine-slice-layer .t { background-image: var(--ui-dialog-panel-t); background-repeat: repeat-x; background-size: auto 100%; }
+    .nine-slice-layer .tr { background-image: var(--ui-dialog-panel-tr); }
+    .nine-slice-layer .l { background-image: var(--ui-dialog-panel-l); background-repeat: repeat-y; background-size: 100% auto; }
+    .nine-slice-layer .c { background-image: var(--ui-dialog-panel-c); }
+    .nine-slice-layer .r { background-image: var(--ui-dialog-panel-r); background-repeat: repeat-y; background-size: 100% auto; }
+    .nine-slice-layer .bl { background-image: var(--ui-dialog-panel-bl); }
+    .nine-slice-layer .b { background-image: var(--ui-dialog-panel-b); background-repeat: repeat-x; background-size: auto 100%; }
+    .nine-slice-layer .br { background-image: var(--ui-dialog-panel-br); }
+    .cover-card > :not(.nine-slice-layer) { position: relative; z-index: 1; }
+
+    /* Hybrid UI: responsive CSS geometry with generated pixel icons. */
+    .nine-slice-layer { display: none; }
+    .score-bubble,
+    .growth-wrap,
+    .lives,
+    .volume-wrap,
+    .play-tip,
+    .toast,
+    .cover-card {
+      background: linear-gradient(145deg, rgba(5, 49, 87, .94), rgba(3, 24, 58, .92));
+      border: 0;
+      border-radius: 0;
+      clip-path: polygon(12px 0, calc(100% - 12px) 0, 100% 12px, 100% calc(100% - 10px), calc(100% - 10px) 100%, 10px 100%, 0 calc(100% - 10px), 0 12px);
+      box-shadow: inset 0 0 0 3px #061a3a, inset 0 0 0 5px rgba(99, 225, 230, .72), 0 5px 0 rgba(2, 18, 48, .48);
+    }
+
+    .score-bubble {
+      min-width: 132px;
+      height: 64px;
+      padding: 0 15px;
+      gap: 8px;
+      background: linear-gradient(150deg, rgba(7, 68, 104, .96), rgba(4, 31, 67, .94));
+    }
+    .score-bubble::after,
+    .growth-wrap::after {
+      content: "";
+      position: absolute;
+      pointer-events: none;
+      background: #ffcc52;
+      image-rendering: pixelated;
+    }
+    .score-bubble::after { left: 9px; bottom: 7px; width: 32px; height: 3px; }
+    .score-copy small { color: #9ceaf0; }
+
+    .growth-wrap {
+      position: relative;
+      min-height: 68px;
+      padding: 10px 16px 11px;
+      background: linear-gradient(180deg, rgba(4, 44, 82, .96), rgba(3, 26, 62, .94));
+    }
+    .growth-wrap::after { right: 10px; top: 8px; width: 44px; height: 3px; }
+    .growth-label { margin: 0 3px 6px; line-height: 1; }
+    .growth-track { height: 16px; border-radius: 0; clip-path: polygon(5px 0, 100% 0, calc(100% - 5px) 100%, 0 100%); }
+    .growth-fill { border-radius: 0; }
+
+    .lives {
+      min-width: 122px;
+      height: 62px;
+      padding: 0 14px;
+      background: linear-gradient(145deg, rgba(6, 62, 96, .96), rgba(3, 28, 64, .94));
+    }
+    .heart { width: 29px; height: 27px; }
+
+    .round-button {
+      width: 58px;
+      height: 58px;
+      background: linear-gradient(145deg, #087c9c, #06446f 52%, #03264e);
+      clip-path: polygon(17px 0, calc(100% - 17px) 0, 100% 17px, 100% calc(100% - 17px), calc(100% - 17px) 100%, 17px 100%, 0 calc(100% - 17px), 0 17px);
+      box-shadow: inset 0 0 0 3px #061a3a, inset 0 0 0 5px #74e6e5, 0 4px 0 rgba(2, 18, 48, .5);
+    }
+    .round-button::after { inset: 16px; }
+    .round-button:hover, .round-button:focus-visible { background: linear-gradient(145deg, #0a91ac, #07567c 52%, #03305a); filter: brightness(1.08); transform: translateY(-1px); }
+    .round-button:active { transform: translateY(3px) scale(.96); }
+
+    .volume-wrap {
+      width: 108px;
+      height: 58px;
+      padding: 9px 17px 8px;
+    }
+    .volume-wrap input { width: 74px; }
+
+    .play-tip {
+      min-height: 50px;
+      padding: 14px 20px 12px 52px;
+      background: linear-gradient(145deg, rgba(6, 58, 93, .94), rgba(3, 25, 59, .92));
+      text-shadow: 2px 2px 0 #061a45;
+    }
+
+    .toast {
+      min-height: 58px;
+      padding: 18px 28px 15px;
+      background: linear-gradient(145deg, rgba(8, 81, 108, .97), rgba(4, 38, 73, .96));
+      color: #fff1c8;
+    }
+
+    .next-level-button,
+    .start-button {
+      min-height: 58px;
+      border: 0;
+      border-radius: 0;
+      background: linear-gradient(135deg, #ffd25d, #ff9d48 70%, #f06a43);
+      clip-path: polygon(13px 0, 100% 0, calc(100% - 13px) 100%, 0 100%, 0 13px);
+      color: #08264a;
+      text-shadow: 1px 1px 0 rgba(255,255,255,.35);
+      box-shadow: inset 0 0 0 3px #6f2c31, inset 0 -5px 0 rgba(138, 45, 42, .22), 0 5px 0 rgba(2, 18, 48, .5);
+    }
+    .next-level-button:hover,
+    .next-level-button:focus-visible,
+    .start-button:hover,
+    .start-button:focus-visible {
+      background: linear-gradient(135deg, #ffe077, #ffad51 70%, #f87949) !important;
+      filter: brightness(1.06);
+      transform: translateY(-2px);
+    }
+    .next-level-button:active,
+    .start-button:active { transform: translateY(3px) scale(.985); }
+
+    .cover { background: rgba(2, 18, 57, .7); }
+    .cover-card {
+      width: min(620px, calc(100% - 24px));
+      padding: 48px 54px 52px;
+      overflow: hidden;
+      clip-path: polygon(30px 0, calc(100% - 18px) 0, 100% 18px, 100% calc(100% - 34px), calc(100% - 34px) 100%, 18px 100%, 0 calc(100% - 18px), 0 30px);
+      background: linear-gradient(155deg, rgba(7, 66, 102, .98), rgba(3, 27, 65, .98) 54%, rgba(4, 39, 76, .98));
+      box-shadow: inset 0 0 0 4px #061a3a, inset 0 0 0 7px rgba(102, 229, 227, .75), 0 14px 0 rgba(2, 16, 45, .48);
+    }
+    .cover-card::before,
+    .cover-card::after {
+      display: block;
+      content: "";
+      position: absolute;
+      z-index: 0;
+      width: 54px;
+      height: 54px;
+      border: 0;
+      border-radius: 0;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-size: contain;
+      opacity: .82;
+      image-rendering: pixelated;
+    }
+    .cover-card::before { top: 16px; right: 18px; background-image: var(--ui-icon-pearl); }
+    .cover-card::after { left: 17px; bottom: 16px; background-image: var(--ui-icon-star); }
+    .cover h1 { font-size: clamp(2.05rem, 6vw, 3.6rem); }
+    .cover-copy { max-width: 450px; line-height: 1.6; }
+    .start-button { min-width: 210px; }
+
+    /* A single restrained border-image keeps the dialog corners pixel-perfect. */
+    .cover-card {
+      padding: 20px 28px 28px;
+      border: 36px solid transparent;
+      border-image-source: var(--ui-dialog-panel);
+      border-image-slice: 74;
+      border-image-width: 36px;
+      border-image-repeat: round;
+      clip-path: none;
+      background: rgba(3, 31, 69, .96);
+    }
+    .cover-card::before, .cover-card::after { display: none; }
+
+    /* Final hybrid pass: soft CSS vessels, pixel-art icons and one ornate dialog border. */
+    .score-bubble,
+    .growth-wrap,
+    .lives,
+    .volume-wrap,
+    .play-tip,
+    .toast {
+      clip-path: none;
+      border: 0;
+      background:
+        radial-gradient(ellipse at 24% 4%, rgba(225, 251, 255, .13), transparent 46%),
+        linear-gradient(145deg, rgba(100, 190, 237, .14), rgba(23, 112, 183, .2) 52%, rgba(3, 43, 96, .3));
+      -webkit-backdrop-filter: blur(9px) saturate(1.12);
+      backdrop-filter: blur(9px) saturate(1.12);
+      box-shadow:
+        inset 0 1px 0 rgba(220, 252, 255, .3),
+        inset 0 -3px 0 rgba(1, 24, 63, .18),
+        0 8px 18px rgba(1, 16, 48, .22);
+    }
+    .score-bubble::after,
+    .growth-wrap::after { display: none; }
+    .growth-wrap::before {
+      content: "";
+      position: absolute;
+      z-index: 2;
+      left: 12px;
+      top: 50%;
+      width: 38px;
+      height: 40px;
+      transform: translateY(-50%);
+      background: var(--ui-icon-growth) center / contain no-repeat;
+      filter: drop-shadow(0 3px 3px rgba(1, 19, 52, .3));
+      image-rendering: pixelated;
+      opacity: .9;
+      pointer-events: none;
+    }
+    .growth-wrap { padding: 13px 16px 8px 60px; }
+    .score-bubble { border-radius: 24px 28px 25px 30px; }
+    .growth-wrap { border-radius: 26px 31px 24px 29px; }
+    .lives { border-radius: 29px 25px 30px 24px; }
+    .volume-wrap { border-radius: 22px 26px 23px 28px; }
+    .play-tip { border-radius: 24px 30px 25px 28px; }
+    .toast { border-radius: 29px 25px 31px 24px; }
+    .growth-label {
+      align-items: baseline;
+      line-height: 1.2;
+      font-weight: 700;
+    }
+    .growth-label > span { display: block; line-height: inherit; font-weight: 650; }
+    .growth-label > strong { display: block; line-height: inherit; font-weight: 650; }
+    .score-copy strong { font-weight: 650; }
+    .play-tip {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding-inline: 22px;
+    }
+    .play-tip::before {
+      position: static;
+      flex: 0 0 auto;
+      transform: none;
+      margin: 0;
+    }
+    .growth-track,
+    .growth-fill { clip-path: none; border-radius: 999px; }
+
+    .round-button {
+      clip-path: none;
+      border: 0;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at 30% 18%, rgba(226, 253, 255, .19), transparent 34%),
+        linear-gradient(145deg, rgba(92, 192, 230, .18), rgba(19, 110, 177, .25) 54%, rgba(3, 45, 95, .36));
+      -webkit-backdrop-filter: blur(9px) saturate(1.15);
+      backdrop-filter: blur(9px) saturate(1.15);
+      box-shadow:
+        inset 0 0 0 1px rgba(184, 244, 247, .24),
+        inset 0 1px 0 rgba(232, 254, 255, .34),
+        inset 0 -3px 0 rgba(1, 23, 61, .18),
+        0 7px 15px rgba(2, 18, 48, .23);
+      transition: transform 150ms ease-out, filter 150ms ease-out, background 150ms ease-out;
+    }
+    .round-button:hover,
+    .round-button:focus-visible {
+      background:
+        radial-gradient(circle at 30% 18%, rgba(239, 255, 255, .28), transparent 38%),
+        linear-gradient(145deg, rgba(112, 215, 241, .24), rgba(24, 134, 195, .32) 54%, rgba(4, 57, 111, .43));
+      transform: translateY(-1px);
+      filter: brightness(1.07);
+    }
+    .round-button:active { transform: translateY(2px) scale(.97); }
+
+    .next-level-button,
+    .start-button {
+      clip-path: none;
+      border: 2px solid #793741;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #ffd668, #ffad55 62%, #f47c4c);
+      box-shadow: inset 0 -4px 0 rgba(139, 47, 42, .16), 0 5px 0 rgba(2, 18, 48, .42);
+      transition: transform 160ms ease-out, filter 160ms ease-out, box-shadow 160ms ease-out;
+    }
+    .next-level-button:hover,
+    .next-level-button:focus-visible,
+    .start-button:hover,
+    .start-button:focus-visible {
+      border-radius: 999px;
+      background: linear-gradient(135deg, #ffe385, #ffb95e 62%, #fa8952) !important;
+      filter: brightness(1.07) saturate(1.04);
+      transform: translateY(-2px);
+      box-shadow: inset 0 -4px 0 rgba(139, 47, 42, .14), 0 6px 0 rgba(2, 18, 48, .38);
+    }
+    .next-level-button:active,
+    .start-button:active { transform: translateY(2px) scale(.985); }
+
+    .cover-card {
+      clip-path: none;
+      overflow: visible;
+      background: rgba(3, 31, 69, .96);
+      background-clip: padding-box;
+      box-shadow: none;
+    }
+
+    @media (max-width: 900px) {
+      .game-shell { min-height: 0; }
+      .hud { grid-template-columns: auto 1fr auto; gap: 7px; top: max(8px, env(safe-area-inset-top)); left: max(8px, env(safe-area-inset-left)); right: max(8px, env(safe-area-inset-right)); }
+      .score-bubble { min-width: 88px; height: 46px; padding: 0 10px; }
+      .score-bubble .star { font-size: 1.1rem; }
+      .score-copy small { display: none; }
+      .score-copy strong { font-size: .95rem; }
+      .growth-wrap { width: 100%; min-width: 0; min-height: 54px; padding: 9px 9px 6px 48px; }
+      .growth-wrap::before { left: 9px; width: 30px; height: 32px; }
+      .growth-label { font-size: .65rem; margin-bottom: 5px; }
+      .growth-track { height: 13px; }
+      .lives { min-width: 74px; height: 46px; padding: 0 8px; gap: 4px; }
+      .heart { width: 18px; height: 18px; border-width: 2px; }
+      .round-button { width: 42px; height: 42px; font-size: .9rem; }
+      .round-button::after { inset: 12px; }
+      #autoButton::after { inset: 8px; }
+      #pauseButton { position: absolute; right: 94px; top: 54px; }
+      #autoButton { position: absolute; right: 47px; top: 54px; }
+      #soundButton { position: absolute; right: 0; top: 54px; }
+      .toast { top: 76px; font-size: .78rem; }
+      .play-tip { bottom: max(9px, env(safe-area-inset-bottom)); min-height: 45px; padding: 11px 15px; font-size: .68rem; }
+      .play-tip::before { width: 24px; height: 22px; }
+      .next-level-button { right: 12px; bottom: 64px; min-height: 48px; max-width: calc(100% - 24px); padding: 0 16px; font-size: .78rem; }
+      .cover-card { width: min(620px, calc(100% - 16px)); padding: 64px 56px 72px; }
+      .cover-card { padding: 16px 20px 22px; border-width: 29px; border-image-width: 29px; }
+      .cover h1 { font-size: clamp(2rem, 8vw, 3.35rem); }
+      .cover-copy { max-width: 400px; }
+      .nine-slice-layer { grid-template-columns: 44px minmax(0, 1fr) 44px; grid-template-rows: 44px minmax(0, 1fr) 44px; }
+      .cover-copy { margin: 13px auto 16px; line-height: 1.55; }
+      .rule-row { gap: 10px; margin-bottom: 19px; }
+      .rule { grid-template-columns: 42px auto; font-size: .7rem; }
+      .rule-icon { width: 42px; height: 42px; }
+      .start-button { min-height: 52px; }
+    }
+
+    @media (max-height: 520px) {
+      .cover { padding-block: max(8px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-bottom)); }
+      .cover-card {
+        width: min(620px, calc(100% - 12px));
+        padding: 8px 18px 12px;
+        border-width: 24px;
+        border-image-width: 24px;
+      }
+      .cover-kicker { margin-bottom: 3px; font-size: .62rem; }
+      .cover h1 { font-size: clamp(1.65rem, 9vh, 2.2rem); line-height: .96; }
+      .cover-copy { margin: 6px auto 7px; font-size: clamp(.72rem, 2.8vh, .86rem); line-height: 1.32; }
+      .rule-row { margin-bottom: 8px; }
+      .rule { grid-template-columns: 32px auto; font-size: .62rem; }
+      .rule-icon { width: 32px; height: 32px; }
+      .start-button { min-height: 44px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { transition-duration: .01ms !important; }
+      .water-source { opacity: .12; }
+      .game-shell::before { animation: none; opacity: .36; }
+      [data-powered="true"] .growth-wrap { animation: none; }
+    }
+  </style>
+</head>
+<body>
+  <main class="game-shell" id="gameShell" data-state="loading" data-score="0" data-growth="0" data-hearts="3">
+    <canvas id="gameCanvas" width="1280" height="720" tabindex="0" aria-label="沫沫的横版海底成长游戏，移动鼠标或手指控制小鱼"></canvas>
+    <video class="water-source" id="waterVideo" autoplay muted playsinline loop preload="auto" src="assets/media/water-light.mp4" aria-hidden="true"></video>
+    <div class="hurt-flash" id="hurtFlash" aria-hidden="true"></div>
+    <audio class="bgm-source" id="ambientBgm" loop preload="auto" src="assets/audio/underwater-ambient-pad.ogg"></audio>
+    <audio class="bgm-source" id="chaseBgm" loop preload="auto" src="assets/audio/frenzied-swimming.ogg"></audio>
+    <audio class="bgm-source" id="eatSmallSfx" preload="auto" src="assets/audio/eat-cute-small.wav"></audio>
+    <audio class="bgm-source" id="eatHeavySfx" preload="auto" src="assets/audio/eat-cute-heavy.wav"></audio>
+    <audio class="bgm-source" id="bubblePopSfx" preload="auto" src="assets/audio/bubble-pop.ogg"></audio>
+    <audio class="bgm-source" id="playerHitSfx" preload="auto" src="assets/audio/player-hit.mp3"></audio>
+
+    <div class="hud" aria-label="游戏状态">
+      <div class="score-bubble" aria-label="分数">
+        <span class="star">★</span>
+        <span class="score-copy"><small>吃鱼得分</small><strong id="scoreText">0000</strong></span>
+      </div>
+      <div class="growth-wrap">
+        <div class="growth-label"><span id="stageText">小不点</span><strong id="growthText">成长 0%</strong></div>
+        <div class="growth-track" role="meter" aria-label="成长进度" aria-valuemin="0" aria-valuemax="180" aria-valuenow="0"><div class="growth-fill" id="growthFill"></div></div>
+      </div>
+      <div class="hud-right">
+        <div class="lives" id="lives" aria-label="三颗泡泡心"></div>
+        <button class="round-button" id="pauseButton" type="button" aria-label="暂停游戏">Ⅱ</button>
+        <button class="round-button" id="autoButton" type="button" aria-label="开启水族馆观赏模式" aria-pressed="false" title="水族馆观赏模式">◉</button>
+        <button class="round-button" id="soundButton" type="button" aria-label="关闭全部声音">♫</button>
+      </div>
+    </div>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <div class="play-tip" id="playTip">移动去吃小鱼 · 按住 Shift / 鼠标冲刺</div>
+    <button class="next-level-button" id="nextLevelButton" type="button" disabled>前往下一海域 →</button>
+
+    <section class="cover" id="cover" aria-labelledby="coverTitle">
+      <div class="cover-card">
+        <span class="nine-slice-layer" aria-hidden="true"><i class="tl"></i><i class="t"></i><i class="tr"></i><i class="l"></i><i class="c"></i><i class="r"></i><i class="bl"></i><i class="b"></i><i class="br"></i></span>
+        <p class="cover-kicker" id="coverKicker">A TINY FISH, A BIG APPETITE</p>
+        <h1 id="coverTitle">沫沫的<br><span>珊瑚午餐</span></h1>
+        <p class="cover-copy" id="coverCopy">追着探照灯吃掉不同的小鱼和虾，按住 Shift 或鼠标冲刺。躲开刺豚、水母，并在每片海域结尾挑战鲨鱼！</p>
+        <div class="rule-row" id="ruleRow">
+          <div class="rule good"><i class="rule-icon" id="smallFishIcon"></i><span><b>吃小鱼</b><br>快快长大</span></div>
+          <div class="rule bad"><i class="rule-icon" id="pufferIcon"></i><span><b>躲大鱼</b><br>保护泡泡</span></div>
+        </div>
+        <button class="start-button" id="startButton" type="button" disabled>小鱼正在热身…</button>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    "use strict";
+    const ASSET_URLS = {"butterflyfish_swim":"assets/images/butterflyfish_swim.png","jellyfish_pulse":"assets/images/jellyfish_pulse.png","lanternfish_swim":"assets/images/lanternfish_swim.png","momo_swim":"assets/images/momo_swim.png","puffer_pulse":"assets/images/puffer_pulse.png","sardine_swim":"assets/images/sardine_swim.png","shark_boss":"assets/images/shark_boss.png","shrimp_swim":"assets/images/shrimp_swim.png","bg_anemone":"assets/images/bg_anemone.png","bg_bubble":"assets/images/bg_bubble.png","bg_clam":"assets/images/bg_clam.png","bg_column":"assets/images/bg_column.png","bg_coral":"assets/images/bg_coral.png","bg_corner_left":"assets/images/bg_corner_left.png","bg_corner_right":"assets/images/bg_corner_right.png","bg_seaweed":"assets/images/bg_seaweed.png","bg_shipwreck":"assets/images/bg_shipwreck.png","depth_far_bed":"assets/images/depth_far_bed.png","depth_far_ridge":"assets/images/depth_far_ridge.png","depth_mid_bed":"assets/images/depth_mid_bed.png","depth_rock_arch":"assets/images/depth_rock_arch.png","depth_rock_cliff":"assets/images/depth_rock_cliff.png","depth_rock_shelf":"assets/images/depth_rock_shelf.png","depth_rock_spires":"assets/images/depth_rock_spires.png","icon_boost":"assets/images/icon_boost.png","icon_growth":"assets/images/icon_growth.png","icon_heart":"assets/images/icon_heart.png","icon_music":"assets/images/icon_music.png","icon_pause":"assets/images/icon_pause.png","icon_pearl":"assets/images/icon_pearl.png","icon_play":"assets/images/icon_play.png","icon_star":"assets/images/icon_star.png","icon_warning":"assets/images/icon_warning.png","icon_watch":"assets/images/icon_watch.png","dialog_panel":"assets/images/dialog_panel.png","toast_panel":"assets/images/toast_panel.png"};
+    const UI_CSS_ASSETS = {
+      "--ui-hud-panel": "hud_panel",
+      "--ui-growth-frame": "growth_frame",
+      "--ui-lives-panel": "lives_panel",
+      "--ui-round-button": "round_button",
+      "--ui-dialog-panel": "dialog_panel",
+      "--ui-toast-panel": "toast_panel",
+      "--ui-tip-panel": "tip_panel",
+      "--ui-action-button": "action_button",
+      "--ui-icon-star": "icon_star",
+      "--ui-icon-heart": "icon_heart",
+      "--ui-icon-pause": "icon_pause",
+      "--ui-icon-music": "icon_music",
+      "--ui-icon-play": "icon_play",
+      "--ui-icon-boost": "icon_boost",
+      "--ui-icon-growth": "icon_growth",
+      "--ui-icon-pearl": "icon_pearl",
+      "--ui-icon-watch": "icon_watch",
+      "--ui-icon-warning": "icon_warning"
+    };
+    for (const [property, asset] of Object.entries(UI_CSS_ASSETS)) {
+      if (ASSET_URLS[asset]) document.documentElement.style.setProperty(property, `url("${ASSET_URLS[asset]}")`);
+    }
+    for (const [asset, url] of Object.entries(ASSET_URLS)) {
+      if (/^(growth_frame|lives_panel|toast_panel|tip_panel|action_button|dialog_panel)_/.test(asset)) {
+        document.documentElement.style.setProperty(`--ui-${asset.replaceAll("_", "-")}`, `url("${url}")`);
+      }
+    }
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d", { alpha: false });
+    const lightOverlay = document.createElement("canvas");
+    const lightCtx = lightOverlay.getContext("2d");
+    const waterVideo = document.getElementById("waterVideo");
+    const ambientBgm = document.getElementById("ambientBgm");
+    const chaseBgm = document.getElementById("chaseBgm");
+    const eatSmallSfx = document.getElementById("eatSmallSfx");
+    const eatHeavySfx = document.getElementById("eatHeavySfx");
+    const bubblePopSfx = document.getElementById("bubblePopSfx");
+    const playerHitSfx = document.getElementById("playerHitSfx");
+    const shell = document.getElementById("gameShell");
+    const cover = document.getElementById("cover");
+    const startButton = document.getElementById("startButton");
+    const toastNode = document.getElementById("toast");
+    const hurtFlashNode = document.getElementById("hurtFlash");
+    const images = {};
+    const FRAME = 256;
+    let WIDTH = Math.max(320, Math.round(shell.clientWidth));
+    let HEIGHT = Math.max(420, Math.round(shell.clientHeight));
+    canvas.width = WIDTH;
+    canvas.height = HEIGHT;
+    lightOverlay.width = WIDTH;
+    lightOverlay.height = HEIGHT;
+    ctx.imageSmoothingEnabled = false;
+    const keys = new Set();
+    let audioContext = null;
+    let toastTimer = 0;
+    let previousTime = 0;
+    let nextEntityId = 1;
+    let activeBgm = null;
+    let bgmFadeToken = 0;
+    const reducedAudioByDefault = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const bgmTracks = { ambient: ambientBgm, chase: chaseBgm };
+    const bgmMix = new Map([[ambientBgm, .82], [chaseBgm, 1]]);
+    const sfxSources = { small: eatSmallSfx, heavy: eatHeavySfx, bubble: bubblePopSfx, hurt: playerHitSfx };
+    const sfxPools = Object.fromEntries(Object.entries(sfxSources).map(([name, source]) => [
+      name,
+      Array.from({ length: 4 }, () => {
+        const track = new Audio(source.src);
+        track.preload = "auto";
+        return track;
+      })
+    ]));
+    const sfxCursor = { small: 0, heavy: 0, bubble: 0, hurt: 0 };
+
+    const ui = {
+      score: document.getElementById("scoreText"),
+      growth: document.getElementById("growthText"),
+      growthFill: document.getElementById("growthFill"),
+      growthTrack: document.querySelector(".growth-track"),
+      stage: document.getElementById("stageText"),
+      lives: document.getElementById("lives"),
+      pause: document.getElementById("pauseButton"),
+      auto: document.getElementById("autoButton"),
+      sound: document.getElementById("soundButton"),
+      tip: document.getElementById("playTip"),
+      coverKicker: document.getElementById("coverKicker"),
+      coverTitle: document.getElementById("coverTitle"),
+      coverCopy: document.getElementById("coverCopy"),
+      ruleRow: document.getElementById("ruleRow")
+    };
+    ui.nextLevel = document.getElementById("nextLevelButton");
+
+    const state = {
+      mode: "loading",
+      score: 0,
+      growth: 0,
+      hearts: 3,
+      sound: !reducedAudioByDefault,
+      musicVolume: .25,
+      elapsed: 0,
+      spawnTimer: .3,
+      dangerTimer: 8,
+      jellyTimer: 12,
+      bossRespawn: 0,
+      current: 82,
+      level: 0,
+      powered: false,
+      feastTimer: 0,
+      nextReady: false,
+      bossSpawned: false,
+      bossDefeated: false,
+      autoPlay: false,
+      autoBoost: false,
+      autoSpeedScale: 1,
+      autoSpeedTarget: 1,
+      autoTargetId: null,
+      autoRetargetTimer: 0,
+      autoAdvanceTimer: 0,
+      pointerBoost: false,
+      boostTrailTimer: 0,
+      player: {
+        x: Math.min(330, WIDTH * .3), y: HEIGHT * .5, targetX: Math.min(330, WIDTH * .3), targetY: HEIGHT * .5,
+        vx: 0, vy: 0, facing: 1, facingIntent: 1, facingChangeTimer: 0, tilt: 0, scale: .92, invincible: 0, anim: 0,
+        inputMode: "pointer", lightUx: 1, lightUy: 0, lightTargetUx: 1, lightTargetUy: 0, lightAngle: 0,
+        lampOffsetX: 0, lampOffsetY: 0, lampReady: false, lightRenderTime: 0
+      },
+      creatures: [],
+      particles: [],
+      decorations: [],
+      depthFar: [],
+      depthMid: [],
+      depthFront: [],
+      bubbles: []
+    };
+
+    const PREY_SPECIES = [
+      { id: "lanternfish", sheet: "lanternfish_swim", size: 132, scale: [.48, .76], speed: [76, 132], points: 5 },
+      { id: "butterflyfish", sheet: "butterflyfish_swim", size: 136, scale: [.5, .78], speed: [68, 118], points: 6 },
+      { id: "sardine", sheet: "sardine_swim", size: 148, scale: [.5, .8], speed: [105, 166], points: 5 },
+      { id: "shrimp", sheet: "shrimp_swim", size: 124, scale: [.48, .74], speed: [82, 148], points: 7 }
+    ];
+    const LANTERN_LAMP_ANCHORS = [[.3342,-.0892],[.3349,-.0912],[.3337,-.088],[.3336,-.0882],[.3348,-.0928],[.3354,-.0915]];
+    const MOMO_LAMP_ANCHORS = [[.305,-.162],[.3094,-.1599],[.3053,-.1599],[.3057,-.1595],[.3072,-.1594],[.3063,-.1602]];
+    const ZONES = [
+      {
+        name: "珊瑚暖湾", intro: "第一海域：蝴蝶鱼和小虾在暖流里等你。", current: 82, preyDelay: [.62, 1.05], pufferDelay: [7.5, 10.5], jellyDelay: [12, 16], speed: 1, pufferGroup: 0, jellyGroup: 0,
+        colors: ["#075dbb", "#064495", "#04245f"], seabeds: ["rgba(5,63,148,.82)", "rgba(4,47,119,.93)", "#04245f"],
+        decors: ["bg_coral", "bg_seaweed", "bg_anemone", "bg_clam", "bg_column"], light: .24
+      },
+      {
+        name: "幽蓝沉船道", intro: "第二海域：水流变快，沉船边藏着成对水母。", current: 108, preyDelay: [.54, .88], pufferDelay: [5.8, 8.2], jellyDelay: [8, 11], speed: 1.12, pufferGroup: .08, jellyGroup: .34,
+        colors: ["#0759b8", "#063c91", "#041e58"], seabeds: ["rgba(7,57,132,.82)", "rgba(5,42,106,.94)", "#031a4e"],
+        decors: ["bg_shipwreck", "bg_column", "bg_clam", "bg_seaweed", "bg_shipwreck"], light: .22
+      },
+      {
+        name: "月光海沟", intro: "第三海域：深水湍急，群怪与鲨鱼都更凶猛。", current: 132, preyDelay: [.46, .76], pufferDelay: [4.4, 6.4], jellyDelay: [5.8, 8.2], speed: 1.24, pufferGroup: .24, jellyGroup: .56,
+        colors: ["#203b9e", "#172779", "#090f3e"], seabeds: ["rgba(25,39,114,.84)", "rgba(18,27,88,.95)", "#080d35"],
+        decors: ["bg_column", "bg_shipwreck", "bg_anemone", "bg_column", "bg_seaweed"], light: .2
+      }
+    ];
+
+    function random(min, max) { return min + Math.random() * (max - min); }
+    function clamp(value, min, max) { return Math.max(min, Math.min(max, value)); }
+    function viewScale() { return Math.max(.62, Math.min(1, WIDTH / 960, HEIGHT / 620)); }
+    function currentZone() { return ZONES[state.level]; }
+
+    function resizeWorld() {
+      const nextWidth = Math.max(320, Math.round(shell.clientWidth));
+      const nextHeight = Math.max(420, Math.round(shell.clientHeight));
+      if (nextWidth === WIDTH && nextHeight === HEIGHT) return;
+      const ratioX = nextWidth / WIDTH;
+      const ratioY = nextHeight / HEIGHT;
+      for (const key of ["x", "targetX"]) state.player[key] *= ratioX;
+      for (const key of ["y", "targetY"]) state.player[key] *= ratioY;
+      for (const creature of state.creatures) { creature.x *= ratioX; creature.y *= ratioY; }
+      for (const decor of state.decorations) { decor.x *= ratioX; decor.y *= ratioY; }
+      for (const decor of [...state.depthFar, ...state.depthMid]) { decor.x *= ratioX; decor.y *= ratioY; }
+      for (const bubble of state.bubbles) { bubble.x *= ratioX; bubble.y *= ratioY; }
+      WIDTH = nextWidth;
+      HEIGHT = nextHeight;
+      canvas.width = WIDTH;
+      canvas.height = HEIGHT;
+      lightOverlay.width = WIDTH;
+      lightOverlay.height = HEIGHT;
+      ctx.imageSmoothingEnabled = false;
+      updateHUD();
+    }
+
+    function renderWaterLight(now = 0) {
+      const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+      if (waterVideo.readyState < 2) return;
+      shell.dataset.waterLight = reducedMotion ? "still" : waterVideo.paused ? "paused" : "playing";
+      shell.dataset.waterTime = waterVideo.currentTime.toFixed(2);
+      if (reducedMotion) waterVideo.pause();
+    }
+
+    function fitPointer(clientX, clientY) {
+      const rect = canvas.getBoundingClientRect();
+      const scale = Math.min(rect.width / WIDTH, rect.height / HEIGHT);
+      const offsetX = (rect.width - WIDTH * scale) / 2;
+      const offsetY = (rect.height - HEIGHT * scale) / 2;
+      return {
+        x: clamp((clientX - rect.left - offsetX) / scale, 70, WIDTH - 70),
+        y: clamp((clientY - rect.top - offsetY) / scale, 88, HEIGHT - 80)
+      };
+    }
+
+    function drawFrame(sheetName, frame, x, y, size, facing = 1, alpha = 1, rotation = 0) {
+      const image = images[sheetName];
+      if (!image) return;
+      const pixelSize = Math.max(2, Math.round(size / 2) * 2);
+      const depth = clamp(y / Math.max(1, HEIGHT), 0, 1);
+      const isPlayer = sheetName === "momo_swim";
+      ctx.save();
+      ctx.translate(Math.round(x), Math.round(y));
+      ctx.rotate(rotation);
+      ctx.scale(facing, 1);
+      ctx.globalAlpha = alpha;
+      ctx.filter = isPlayer
+        ? "saturate(.88) brightness(.94) contrast(.96) hue-rotate(2deg)"
+        : `saturate(${(.83 - depth * .08).toFixed(2)}) brightness(${(.94 - depth * .08).toFixed(2)}) contrast(.94) hue-rotate(3deg)`;
+      ctx.drawImage(image, frame * FRAME, 0, FRAME, FRAME, -pixelSize / 2, -pixelSize / 2, pixelSize, pixelSize);
+      ctx.globalCompositeOperation = "screen";
+      ctx.globalAlpha = alpha * (isPlayer ? .065 : .085 + depth * .045);
+      ctx.filter = "sepia(1) saturate(5) hue-rotate(142deg) brightness(.72)";
+      ctx.drawImage(image, frame * FRAME, 0, FRAME, FRAME, -pixelSize / 2, -pixelSize / 2, pixelSize, pixelSize);
+      ctx.restore();
+    }
+
+    function drawImage(name, x, y, height, alpha = 1, flip = false) {
+      const image = images[name];
+      if (!image) return;
+      const pixelHeight = Math.max(1, Math.round(height));
+      const width = Math.max(1, Math.round(image.width * pixelHeight / image.height));
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      ctx.translate(Math.round(x), Math.round(y));
+      if (flip) ctx.scale(-1, 1);
+      ctx.drawImage(image, -Math.round(width / 2), -pixelHeight, width, pixelHeight);
+      ctx.restore();
+    }
+
+    function stageInfo() {
+      if (state.powered) {
+        const extra = clamp(state.growth - 100, 0, 80);
+        return { name: extra >= 45 ? "深海巨无霸" : "无敌大胃王", scale: 1.72 + extra / 80 * .62 };
+      }
+      if (state.growth >= 70) return { name: "海域大胃王", scale: 1.6 };
+      if (state.growth >= 35) return { name: "长大的小勇士", scale: 1.24 };
+      return { name: "小不点", scale: .92 };
+    }
+
+    function updateHUD() {
+      const info = stageInfo();
+      state.player.scale = state.powered ? info.scale : info.scale + (state.growth % 35) / 35 * .12;
+      ui.score.textContent = String(state.score).padStart(4, "0");
+      ui.growth.textContent = state.powered ? `超大 ${Math.round(state.growth)}%` : `成长 ${Math.round(state.growth)}%`;
+      ui.growthFill.style.width = `${Math.min(state.growth, 100)}%`;
+      ui.growthTrack.setAttribute("aria-valuenow", Math.round(state.growth));
+      ui.stage.textContent = WIDTH < 520 ? `${state.level + 1}/3 ${currentZone().name}` : `${state.level + 1}/3 ${currentZone().name} · ${info.name}`;
+      shell.dataset.score = state.score;
+      shell.dataset.growth = Math.round(state.growth);
+      shell.dataset.hearts = state.hearts;
+      shell.dataset.state = state.mode;
+      shell.dataset.level = state.level + 1;
+      shell.dataset.zone = currentZone().name;
+      shell.dataset.powered = state.powered;
+      shell.dataset.nextReady = state.nextReady;
+      shell.dataset.bossSpawned = state.bossSpawned;
+      shell.dataset.bossDefeated = state.bossDefeated;
+      shell.dataset.autoplay = state.autoPlay;
+      shell.dataset.boost = state.pointerBoost || state.autoBoost || keys.has("Shift") ? "on" : "off";
+      shell.dataset.sound = state.sound ? "on" : "off";
+      shell.dataset.bgm = activeBgm === chaseBgm ? "chase" : activeBgm === ambientBgm ? "ambient" : "off";
+      shell.dataset.bgmVolume = state.musicVolume.toFixed(2);
+      [...ui.lives.children].forEach((heart, index) => heart.classList.toggle("empty", index >= state.hearts));
+    }
+
+    function makeLives() {
+      ui.lives.innerHTML = "";
+      for (let index = 0; index < 3; index++) {
+        const heart = document.createElement("i");
+        heart.className = "heart";
+        ui.lives.append(heart);
+      }
+    }
+
+    function say(text, duration = 1800) {
+      clearTimeout(toastTimer);
+      toastNode.textContent = text;
+      toastNode.classList.add("show");
+      toastTimer = setTimeout(() => toastNode.classList.remove("show"), duration);
+    }
+
+    function beep(frequency = 520, duration = .07, type = "square", volume = .035) {
+      if (!state.sound || !["playing", "won"].includes(state.mode)) return;
+      try {
+        audioContext ||= new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = audioContext.createOscillator();
+        const gain = audioContext.createGain();
+        oscillator.type = type;
+        oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
+        gain.gain.setValueAtTime(volume * clamp(state.musicVolume / .25, 0, 2), audioContext.currentTime);
+        gain.gain.exponentialRampToValueAtTime(.0001, audioContext.currentTime + duration);
+        oscillator.connect(gain).connect(audioContext.destination);
+        oscillator.start();
+        oscillator.stop(audioContext.currentTime + duration);
+      } catch (_) { state.sound = false; }
+    }
+
+    function playSample(name, gain = 1) {
+      const pool = sfxPools[name];
+      if (!pool?.length) return;
+      const track = pool[sfxCursor[name]++ % pool.length];
+      track.pause();
+      track.currentTime = 0;
+      track.playbackRate = name === "heavy" ? .82 : name === "small" ? 1.02 : 1;
+      track.volume = clamp(state.musicVolume * 2.5 * gain, 0, 1);
+      track.play()
+        .then(() => { delete shell.dataset.sfxError; })
+        .catch(error => { shell.dataset.sfxError = `${name}-${error.name || "play"}`; });
+    }
+
+    let sfxUnlocked = false;
+    function unlockSfxPools() {
+      if (sfxUnlocked) return;
+      sfxUnlocked = true;
+      for (const pool of Object.values(sfxPools)) {
+        for (const track of pool) {
+          track.muted = true;
+          track.play().then(() => {
+            track.pause();
+            track.currentTime = 0;
+            track.muted = false;
+          }).catch(() => { track.muted = false; });
+        }
+      }
+    }
+
+    function playEatSound(creature) {
+      if (!state.sound || state.mode !== "playing") return;
+      const sample = creature.kind === "jelly" ? "bubble" : ["puffer", "shark"].includes(creature.kind) ? "heavy" : "small";
+      playSample(sample, creature.kind === "shark" ? 1 : creature.kind === "prey" ? .9 : .94);
+      shell.dataset.lastSfx = `cc0-${sample}-${creature.kind}`;
+    }
+
+    function trackVolume(track, factor = 1) {
+      return clamp(state.musicVolume * (bgmMix.get(track) || 1) * factor, 0, 1);
+    }
+
+    function pauseBgm() {
+      bgmFadeToken += 1;
+      for (const track of Object.values(bgmTracks)) {
+        track.pause();
+        track.volume = 0;
+      }
+      activeBgm = null;
+      shell.dataset.bgm = "off";
+    }
+
+    function playZoneBgm(duration = 900) {
+      if (!state.sound || state.mode !== "playing") return;
+      const next = chaseBgm;
+      if (activeBgm === next && !next.paused) {
+        next.volume = trackVolume(next);
+        return;
+      }
+      const previous = activeBgm;
+      const token = ++bgmFadeToken;
+      const startedAt = performance.now();
+      const fadeDuration = reducedAudioByDefault ? 0 : duration;
+      activeBgm = next;
+      next.volume = 0;
+      next.play().catch(() => {
+        if (token === bgmFadeToken) shell.dataset.bgm = "blocked";
+      });
+      shell.dataset.bgm = next === chaseBgm ? "chase" : "ambient";
+
+      const fade = now => {
+        if (token !== bgmFadeToken) return;
+        const progress = fadeDuration ? clamp((now - startedAt) / fadeDuration, 0, 1) : 1;
+        next.volume = trackVolume(next, progress);
+        if (previous && previous !== next) previous.volume = trackVolume(previous, 1 - progress);
+        if (progress < 1) requestAnimationFrame(fade);
+        else if (previous && previous !== next) {
+          previous.pause();
+          previous.volume = 0;
+        }
+      };
+      requestAnimationFrame(fade);
+    }
+
+    function syncSoundControl() {
+      ui.sound.textContent = state.sound ? "♫" : "×";
+      ui.sound.setAttribute("aria-label", state.sound ? "关闭全部声音" : "开启全部声音");
+      ui.sound.setAttribute("aria-pressed", String(!state.sound));
+      updateHUD();
+    }
+
+    function seedWorld() {
+      const zone = currentZone();
+      const farTypes = state.level === 2 ? ["depth_rock_spires", "depth_rock_arch"] : ["depth_rock_spires", "depth_rock_cliff"];
+      const midTypes = state.level === 0 ? ["depth_rock_arch", "depth_rock_cliff"] : state.level === 1 ? ["depth_rock_cliff", "depth_rock_shelf", "depth_rock_spires"] : ["depth_rock_spires", "depth_rock_arch", "depth_rock_shelf"];
+      state.decorations = [];
+      for (let index = 0; index < 18; index++) {
+        state.decorations.push({
+          type: zone.decors[index % zone.decors.length],
+          x: index * 170 + random(-35, 35),
+          y: HEIGHT - random(4, 22),
+          height: random(80, 155),
+          speed: random(.55, .9),
+          flip: index % 3 === 0
+        });
+      }
+      state.bubbles = Array.from({ length: 32 }, (_, index) => ({
+        x: random(0, WIDTH), y: random(40, HEIGHT), r: random(2, 8), speed: random(12, 34), phase: index
+      }));
+      state.depthFar = Array.from({ length: 8 }, (_, index) => ({
+        type: farTypes[index % farTypes.length], x: index * 330 + random(-60, 60), y: HEIGHT - random(105, 145),
+        height: random(105, 175), speed: random(.08, .15), alpha: random(.13, .21), flip: index % 2 === 0
+      }));
+      state.depthMid = Array.from({ length: 7 }, (_, index) => ({
+        type: midTypes[index % midTypes.length], x: index * 470 + random(-80, 80), y: HEIGHT - random(18, 52),
+        height: random(190, 285), speed: random(.28, .42), alpha: random(.36, .52), flip: index % 3 === 0
+      }));
+      state.depthFront = [
+        { type: "depth_rock_cliff", edge: "left", phase: random(0, 6), flip: false },
+        { type: "depth_rock_shelf", edge: "right", phase: random(0, 6), flip: true }
+      ];
+    }
+
+    function spawnPrey(x = WIDTH + 100) {
+      const zone = currentZone();
+      const species = PREY_SPECIES[Math.floor(Math.random() * PREY_SPECIES.length)];
+      const scale = random(...species.scale);
+      state.creatures.push({
+        id: nextEntityId++, kind: "prey", species: species.id, sheet: species.sheet, baseSize: species.size,
+        x, y: random(125, HEIGHT - 120), baseY: 0, scale, speed: random(...species.speed) * zone.speed,
+        phase: random(0, Math.PI * 2), points: species.points, flee: 0, fleeBubbleTimer: 0,
+        evadeVx: 0, evadeVy: 0, facing: -1, eaten: false
+      });
+    }
+
+    function spawnPuffer(x = WIDTH + 150) {
+      const zone = currentZone();
+      state.creatures.push({
+        id: nextEntityId++, kind: "puffer", sheet: "puffer_pulse", x, y: random(145, HEIGHT - 155),
+        baseY: 0, scale: random(1.08, 1.28), speed: random(54, 78) * zone.speed, phase: random(0, 6), eaten: false
+      });
+    }
+
+    function spawnJelly(x = WIDTH + 130) {
+      const zone = currentZone();
+      state.creatures.push({
+        id: nextEntityId++, kind: "jelly", sheet: "jellyfish_pulse", x, y: random(160, HEIGHT - 180),
+        baseY: 0, scale: random(.86, 1.08), speed: random(38, 60) * zone.speed, phase: random(0, 6), points: 9, eaten: false
+      });
+    }
+
+    function spawnBoss(x = WIDTH + 280) {
+      if (state.bossSpawned || state.bossDefeated) return;
+      const zone = currentZone();
+      state.bossSpawned = true;
+      state.creatures.push({
+        id: nextEntityId++, kind: "shark", sheet: "shark_boss", x, y: clamp(HEIGHT * .48 + random(-90, 90), 180, HEIGHT - 170),
+        baseY: 0, scale: 1.12 + state.level * .08, speed: (46 + state.level * 7) * zone.speed,
+        phase: random(0, 6), points: 32, hp: 3, maxHp: 3, hitCooldown: 0, eaten: false
+      });
+      burst(WIDTH - 30, HEIGHT * .5, "wave", 28);
+      say(`鲨鱼王出现！长到 100% 后连续咬它三次！`, 3000);
+      beep(118, .28, "sawtooth", .045);
+    }
+
+    function creatureVisualSize(creature) {
+      if (creature.kind === "puffer") return 220 * creature.scale;
+      if (creature.kind === "jelly") return 205 * creature.scale;
+      if (creature.kind === "shark") return 360 * creature.scale;
+      return (creature.baseSize || 132) * creature.scale;
+    }
+
+    function canEatCreature(creature) {
+      if (creature.kind === "prey" || state.powered) return true;
+      // Compare the sizes actually drawn on screen. A small 5% margin prevents
+      // nearly equal silhouettes from producing a visually surprising result.
+      return 196 * state.player.scale >= creatureVisualSize(creature) * 1.05;
+    }
+
+    function startLevel(level, heal = false) {
+      state.level = level;
+      state.growth = 0;
+      state.powered = false;
+      state.feastTimer = 0;
+      state.nextReady = false;
+      state.bossSpawned = false;
+      state.bossDefeated = false;
+      state.bossRespawn = 0;
+      state.autoBoost = false;
+      state.autoSpeedScale = 1;
+      state.autoSpeedTarget = 1;
+      state.autoTargetId = null;
+      state.autoRetargetTimer = 0;
+      state.autoAdvanceTimer = 0;
+      state.pointerBoost = false;
+      state.boostTrailTimer = 0;
+      if (heal) state.hearts = Math.min(3, state.hearts + 1);
+      state.elapsed = 0;
+      state.spawnTimer = .25;
+      state.dangerTimer = currentZone().pufferDelay[0];
+      state.jellyTimer = currentZone().jellyDelay[0];
+      state.current = currentZone().current;
+      state.creatures = [];
+      state.particles = [];
+      seedWorld();
+      const startX = Math.min(330, WIDTH * .3);
+      const startY = HEIGHT * .5;
+      Object.assign(state.player, {
+        x: startX, y: startY, targetX: startX, targetY: startY, vx: 0, vy: 0,
+        facing: 1, facingIntent: 1, facingChangeTimer: 0, tilt: 0, scale: .92, invincible: 0, anim: 0,
+        inputMode: "pointer", lightUx: 1, lightUy: 0, lightTargetUx: 1, lightTargetUy: 0, lightAngle: 0,
+        lampOffsetX: 0, lampOffsetY: 0, lampReady: false, lightRenderTime: 0
+      });
+      for (let i = 0; i < 7 + level; i++) spawnPrey(Math.max(WIDTH * .55, 420) + i * 145 + random(-30, 30));
+      ui.nextLevel.classList.remove("visible");
+      ui.nextLevel.disabled = true;
+      ui.nextLevel.textContent = level === ZONES.length - 1 ? "完成探险 ★" : "前往下一海域 →";
+      ui.tip.textContent = state.autoPlay ? "观赏模式已接管 · 点击画面即可手动游玩" : "移动去吃小鱼 · 按住 Shift / 鼠标冲刺";
+      shell.style.setProperty("--water-light-opacity", currentZone().light);
+      updateHUD();
+    }
+
+    function resetGame() {
+      state.score = 0;
+      state.hearts = 3;
+      startLevel(0, false);
+    }
+
+    function startGame() {
+      if (state.mode === "won" || state.mode === "gameover") resetGame();
+      unlockSfxPools();
+      state.mode = "playing";
+      if (!matchMedia("(prefers-reduced-motion: reduce)").matches) waterVideo.play().catch(() => {});
+      shell.dataset.state = "playing";
+      cover.classList.add("hidden");
+      ui.pause.textContent = "Ⅱ";
+      ui.pause.setAttribute("aria-label", "暂停游戏");
+      playZoneBgm();
+      say(currentZone().intro, 2800);
+      canvas.focus();
+    }
+
+    function setAutoPlay(enabled, announce = true) {
+      state.autoPlay = enabled;
+      state.autoBoost = false;
+      state.autoSpeedScale = 1;
+      state.autoSpeedTarget = 1;
+      state.autoTargetId = null;
+      state.autoRetargetTimer = 0;
+      state.autoAdvanceTimer = enabled && state.nextReady ? 2.8 : 0;
+      state.pointerBoost = false;
+      state.player.lightTargetUx = state.player.lightUx || state.player.facing;
+      state.player.lightTargetUy = state.player.lightUy || 0;
+      state.player.lightAngle = Math.atan2(state.player.lightUy || 0, state.player.lightUx || state.player.facing);
+      state.player.facingIntent = state.player.facing;
+      state.player.facingChangeTimer = 0;
+      state.player.lampReady = false;
+      shell.dataset.maxLightTurnStep = "0";
+      shell.dataset.maxAutoSpeed = "1";
+      ui.auto.setAttribute("aria-pressed", String(enabled));
+      ui.auto.setAttribute("aria-label", enabled ? "关闭水族馆观赏模式" : "开启水族馆观赏模式");
+      ui.auto.title = enabled ? "关闭观赏模式" : "水族馆观赏模式";
+      ui.tip.textContent = enabled ? "观赏模式已接管 · 点击画面即可手动游玩" : "移动去吃小鱼 · 按住 Shift / 鼠标冲刺";
+      if (announce && state.mode === "playing") say(enabled ? "水族馆观赏模式开启，沫沫会自己觅食和躲避危险。" : "已回到手动游玩。", 2300);
+      updateHUD();
+    }
+
+    function takeManualControl() {
+      if (state.autoPlay) setAutoPlay(false, true);
+    }
+
+    function showCover(kind) {
+      pauseBgm();
+      cover.classList.remove("hidden");
+      ui.ruleRow.style.display = "none";
+      if (kind === "won") {
+        ui.coverKicker.textContent = "YOU GREW BIG!";
+        ui.coverTitle.innerHTML = "三片海域<br><span>全部吃遍啦</span>";
+        ui.coverCopy.textContent = `你带着无敌状态穿过珊瑚暖湾、幽蓝沉船道和月光海沟，一共拿到了 ${state.score} 分！`;
+        startButton.textContent = "再吃一轮";
+      } else {
+        ui.coverKicker.textContent = "BUBBLES, COME BACK!";
+        ui.coverTitle.innerHTML = "泡泡破光了<br><span>再试一次吧</span>";
+        ui.coverCopy.textContent = `这次拿到了 ${state.score} 分。记住：先躲开刺豚、水母和鲨鱼，长到 100% 后再回头反击！`;
+        startButton.textContent = "重新出发";
+      }
+    }
+
+    function win() {
+      beep(660, .16, "triangle", .05);
+      setTimeout(() => beep(880, .22, "triangle", .05), 150);
+      state.mode = "won";
+      updateHUD();
+      setTimeout(() => showCover("won"), 450);
+    }
+
+    function beginPowerMode() {
+      if (state.powered) return;
+      state.growth = 100;
+      state.powered = true;
+      state.feastTimer = 8;
+      state.nextReady = false;
+      ui.tip.textContent = "无敌大胃王：现在去连续咬鲨鱼王三次！";
+      burst(state.player.x, state.player.y, "gold", 34);
+      say("100% 无敌大胃王！刺豚、水母和鲨鱼现在都能咬！", 3300);
+      beep(660, .12, "triangle", .05);
+      setTimeout(() => beep(880, .14, "triangle", .05), 130);
+      setTimeout(() => beep(1040, .18, "triangle", .05), 280);
+      updateHUD();
+    }
+
+    function unlockNextLevel() {
+      if (state.nextReady || !state.bossDefeated) return;
+      state.nextReady = true;
+      if (state.autoPlay) state.autoAdvanceTimer = 3.2;
+      ui.nextLevel.disabled = false;
+      ui.nextLevel.classList.add("visible");
+      ui.tip.textContent = state.level === ZONES.length - 1 ? "鲨鱼王已打败，继续变大或完成探险" : "鲨鱼王已打败，继续变大或前往下一海域";
+      ui.nextLevel.textContent = state.level === ZONES.length - 1 ? "完成探险 ★" : `前往${ZONES[state.level + 1].name} →`;
+      say(state.level === ZONES.length - 1 ? "玩够了就点「完成探险」！" : "继续享受无敌状态，想走时再去下一海域！", 3200);
+      updateHUD();
+    }
+
+    function goToNextLevel() {
+      if (!state.nextReady) return;
+      if (state.level === ZONES.length - 1) {
+        ui.nextLevel.classList.remove("visible");
+        ui.nextLevel.disabled = true;
+        win();
+        return;
+      }
+      startLevel(state.level + 1, true);
+      state.mode = "playing";
+      playZoneBgm(1200);
+      say(currentZone().intro + " 恢复一颗泡泡心！", 3300);
+      beep(720, .12, "triangle", .045);
+      updateHUD();
+    }
+
+    function loseHeart(creature) {
+      if (state.player.invincible > 0) return;
+      // A single encounter costs at most one heart; the startled creature
+      // immediately darts away so a child cannot be chain-hit in place.
+      creature.eaten = true;
+      if (creature.kind === "shark") {
+        state.bossSpawned = false;
+        state.bossRespawn = 2.4;
+      }
+      shell.dataset.lastCollision = `hurt-${creature.kind}`;
+      state.hearts -= 1;
+      state.player.invincible = 2.8;
+      state.player.vx = -260;
+      state.player.vy = state.player.y < creature.y ? -170 : 170;
+      burst(state.player.x, state.player.y, "hurt", 18);
+      say(state.hearts ? "哎呀！撞到大家伙，泡泡心少了一颗。" : "泡泡心用完了！", 2000);
+      playSample("hurt", .92);
+      hurtFlashNode.animate([{ opacity: 0 }, { opacity: .72, offset: .18 }, { opacity: 0 }], { duration: 430, easing: "ease-out" });
+      ui.lives.animate([{ transform: "scale(1)" }, { transform: "scale(1.13)" }, { transform: "scale(.94)" }, { transform: "scale(1)" }], { duration: 360, easing: "ease-out" });
+      if (!matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        canvas.animate([
+          { transform: "translate(0,0)" }, { transform: "translate(-7px,3px)" },
+          { transform: "translate(6px,-3px)" }, { transform: "translate(-4px,-1px)" }, { transform: "translate(0,0)" }
+        ], { duration: 230, easing: "ease-out" });
+      }
+      updateHUD();
+      if (state.hearts <= 0) {
+        if (state.autoPlay) {
+          state.hearts = 3;
+          state.player.invincible = 4;
+          say("水族馆护理员补满了泡泡心，观赏继续！", 2600);
+          updateHUD();
+          return;
+        }
+        state.mode = "gameover";
+        shell.dataset.state = "gameover";
+        setTimeout(() => showCover("gameover"), 550);
+      }
+    }
+
+    function burst(x, y, kind, count = 12) {
+      for (let index = 0; index < count; index++) {
+        const angle = random(0, Math.PI * 2);
+        const speed = random(35, 155);
+        state.particles.push({ x, y, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed, life: random(.45, .9), maxLife: .9, kind, size: random(3, 9) });
+      }
+    }
+
+    function biteBoss(creature) {
+      if (creature.hitCooldown > 0) return;
+      creature.hp -= 1;
+      creature.hitCooldown = .9;
+      creature.x += 145;
+      state.player.vx -= 90;
+      state.score += 180;
+      burst(creature.x, creature.y, "gold", 22);
+      playEatSound(creature);
+      shell.dataset.bossHp = creature.hp;
+      say(`咬中鲨鱼王！还要 ${creature.hp} 口！`, 1500);
+      if (creature.hp <= 0) eat(creature);
+      else updateHUD();
+    }
+
+    function eat(creature) {
+      creature.eaten = true;
+      const pufferMeal = creature.kind === "puffer";
+      const jellyMeal = creature.kind === "jelly";
+      const sharkMeal = creature.kind === "shark";
+      const gain = sharkMeal ? 24 : pufferMeal ? 12 : creature.points;
+      state.growth = state.powered ? clamp(state.growth + gain, 100, 180) : clamp(state.growth + gain, 0, 100);
+      state.score += sharkMeal ? 1000 : pufferMeal ? 220 : Math.round(gain * 20);
+      burst(creature.x, creature.y, pufferMeal || jellyMeal || sharkMeal ? "gold" : "food", sharkMeal ? 42 : pufferMeal ? 24 : jellyMeal ? 18 : 12);
+      playEatSound(creature);
+      if (pufferMeal) say("哇！现在沫沫比刺豚还大啦！", 1900);
+      if (jellyMeal) say("水母也变成闪亮亮的点心啦！", 1900);
+      if (sharkMeal) {
+        state.bossDefeated = true;
+        state.bossSpawned = false;
+        say("鲨鱼王被吃掉啦！沫沫又大了一圈！", 2600);
+      }
+      shell.dataset.lastCollision = `ate-${creature.kind}`;
+      const beforeStage = ui.stage.textContent;
+      updateHUD();
+      if (beforeStage !== ui.stage.textContent) {
+        say(`长大啦！现在是「${ui.stage.textContent}」`, 2400);
+        beep(880, .16, "triangle", .05);
+      }
+      if (state.growth >= 100) beginPowerMode();
+      if (sharkMeal && state.feastTimer <= 0) unlockNextLevel();
+    }
+
+    function autoTargetScore(creature) {
+      if (creature.eaten || !canEatCreature(creature)) return Infinity;
+      const dx = creature.x - state.player.x;
+      const dy = creature.y - state.player.y;
+      const distance = Math.hypot(dx, dy);
+      const offscreenPenalty = creature.x < 35 || creature.x > WIDTH + 240 ? 900 : 0;
+      const bossPriority = creature.kind === "shark" ? -1800 : 0;
+      const mealPriority = creature.kind === "puffer" || creature.kind === "jelly" ? -120 : 0;
+      return distance + offscreenPenalty + bossPriority + mealPriority;
+    }
+
+    function updateAutoPlay(dt) {
+      if (!state.autoPlay) return;
+      const player = state.player;
+
+      if (state.nextReady) {
+        state.autoAdvanceTimer = Math.max(0, state.autoAdvanceTimer - dt);
+        if (state.autoAdvanceTimer === 0) {
+          if (state.level === ZONES.length - 1) {
+            startLevel(0, true);
+            state.mode = "playing";
+            playZoneBgm(1000);
+            say("三片海域已游遍，新一轮水族馆巡游开始！", 3000);
+          } else goToNextLevel();
+          return;
+        }
+      }
+
+      state.autoRetargetTimer -= dt;
+      let target = state.creatures.find(creature => creature.id === state.autoTargetId && !creature.eaten && canEatCreature(creature));
+      if (!target || state.autoRetargetTimer <= 0 || target.x < -80) {
+        const bestTarget = state.creatures.reduce((best, creature) => autoTargetScore(creature) < autoTargetScore(best || { eaten: true }) ? creature : best, null);
+        const shouldSwitch = !target || target.x < -80 || (bestTarget && autoTargetScore(bestTarget) + 115 < autoTargetScore(target));
+        if (shouldSwitch) target = bestTarget;
+        state.autoTargetId = target?.id ?? null;
+        state.autoRetargetTimer = target ? .28 : .55;
+      }
+
+      const wanderX = WIDTH * (.57 + Math.sin(state.elapsed * .37) * .1);
+      const wanderY = HEIGHT * (.5 + Math.sin(state.elapsed * .61) * .22);
+      const initialTargetDistance = target ? Math.hypot(target.x - player.x, target.y - player.y) : 0;
+      const leadTime = target ? clamp(initialTargetDistance / 720, .08, .42) : 0;
+      const targetDriftX = target ? (target.evadeVx || 0) - ((target.speed || 0) + state.current * .25) : 0;
+      const targetDriftY = target ? target.evadeVy || 0 : 0;
+      let desiredX = target ? target.x + targetDriftX * leadTime : wanderX;
+      let desiredY = target ? target.y + targetDriftY * leadTime : wanderY;
+      let avoidX = 0;
+      let avoidY = 0;
+      let nearestThreat = Infinity;
+
+      for (const creature of state.creatures) {
+        if (creature.eaten || canEatCreature(creature)) continue;
+        const awayX = player.x - creature.x;
+        const awayY = player.y - creature.y;
+        const distance = Math.max(1, Math.hypot(awayX, awayY));
+        const safety = (creature.kind === "shark" ? 390 : creature.kind === "puffer" ? 270 : 245) * viewScale();
+        if (distance >= safety) continue;
+        nearestThreat = Math.min(nearestThreat, distance);
+        const urgency = (1 - distance / safety) ** 2;
+        const verticalEscape = Math.abs(awayY) < 35 ? (player.y < HEIGHT * .5 ? -1 : 1) : Math.sign(awayY);
+        avoidX += awayX / distance * urgency * 430;
+        avoidY += (awayY / distance + verticalEscape * .7) * urgency * 390;
+      }
+
+      if (player.y < 125) avoidY += (125 - player.y) * 3.2;
+      if (player.y > HEIGHT - 120) avoidY -= (player.y - (HEIGHT - 120)) * 3.2;
+      if (player.x < 105) avoidX += (105 - player.x) * 2.8;
+      if (player.x > WIDTH - 100) avoidX -= (player.x - (WIDTH - 100)) * 2.8;
+      desiredX += avoidX;
+      desiredY += avoidY;
+      player.targetX = clamp(desiredX, 76, WIDTH - 76);
+      player.targetY = clamp(desiredY, 92, HEIGHT - 86);
+      player.inputMode = "auto";
+      const beamLength = Math.max(1, Math.hypot(player.targetX - player.x, player.targetY - player.y));
+      player.lightTargetUx = (player.targetX - player.x) / beamLength;
+      player.lightTargetUy = (player.targetY - player.y) / beamLength;
+      const targetDistance = target ? Math.hypot(target.x - player.x, target.y - player.y) : 0;
+      const fleeUrgency = clamp((target?.flee || 0) * 1.25, 0, 1);
+      const chaseUrgency = clamp((targetDistance - 90) / 340, 0, 1);
+      const edgeUrgency = target ? clamp((WIDTH * .3 - target.x) / (WIDTH * .3), 0, 1) : 0;
+      const dangerUrgency = nearestThreat < 230 * viewScale() ? clamp((230 * viewScale() - nearestThreat) / (150 * viewScale()), 0, 1) : 0;
+      state.autoSpeedTarget = target
+        ? clamp(1 + chaseUrgency * .28 + fleeUrgency * .28 + edgeUrgency * .2 + dangerUrgency * .22, .94, 1.58)
+        : .94;
+      if (targetDistance < 72 && fleeUrgency < .2 && dangerUrgency === 0) state.autoSpeedTarget = .9;
+      const speedResponse = 1 - Math.exp(-(state.autoSpeedTarget > state.autoSpeedScale ? 5.2 : 3.4) * dt);
+      state.autoSpeedScale += (state.autoSpeedTarget - state.autoSpeedScale) * speedResponse;
+      state.autoBoost = dangerUrgency > 0 || targetDistance > 82 || fleeUrgency > .12;
+      const speedTier = state.autoSpeedScale >= 1.34 ? "burst" : state.autoSpeedScale >= 1.08 ? "chase" : "cruise";
+      shell.dataset.autoTarget = target ? `${target.kind}-${target.id}` : "wander";
+      shell.dataset.autoSpeed = state.autoSpeedScale.toFixed(2);
+      shell.dataset.autoSpeedTier = speedTier;
+      shell.dataset.maxAutoSpeed = Math.max(Number(shell.dataset.maxAutoSpeed) || 1, state.autoSpeedScale).toFixed(2);
+    }
+
+    function updatePlayer(dt) {
+      const player = state.player;
+      const boosting = keys.has("Shift") || state.pointerBoost || state.autoBoost;
+      const autoSpeedScale = player.inputMode === "auto" ? state.autoSpeedScale : 1;
+      let keyboardX = 0, keyboardY = 0;
+      if (keys.has("ArrowLeft") || keys.has("a")) keyboardX -= 1;
+      if (keys.has("ArrowRight") || keys.has("d")) keyboardX += 1;
+      if (keys.has("ArrowUp") || keys.has("w")) keyboardY -= 1;
+      if (keys.has("ArrowDown") || keys.has("s")) keyboardY += 1;
+      if (keyboardX || keyboardY) {
+        const keyboardLength = Math.max(1, Math.hypot(keyboardX, keyboardY));
+        player.inputMode = "keyboard";
+        player.lightUx = keyboardX / keyboardLength;
+        player.lightUy = keyboardY / keyboardLength;
+        player.lightAngle = Math.atan2(player.lightUy, player.lightUx);
+        const keyboardStep = boosting ? 158 : 105;
+        player.targetX = clamp(player.x + keyboardX * keyboardStep, 80, WIDTH - 80);
+        player.targetY = clamp(player.y + keyboardY * keyboardStep, 90, HEIGHT - 85);
+      }
+      const acceleration = (boosting ? 7.1 : 5.2) * (1 + (autoSpeedScale - 1) * .72);
+      player.vx += (player.targetX - player.x) * acceleration * dt;
+      player.vy += (player.targetY - player.y) * acceleration * dt;
+      const drag = Math.pow(.035, dt);
+      player.vx *= drag;
+      player.vy *= drag;
+      const speed = Math.hypot(player.vx, player.vy);
+      const maxSpeed = (boosting ? 545 : 315) * autoSpeedScale;
+      if (speed > maxSpeed) { player.vx *= maxSpeed / speed; player.vy *= maxSpeed / speed; }
+      const forwardSpeed = Math.max(120, Math.abs(player.vx));
+      const targetTilt = speed > 18 ? clamp(Math.atan2(player.vy, forwardSpeed), -.15, .15) : 0;
+      const tiltResponse = 1 - Math.exp(-(boosting ? 9.2 : 7.2) * dt);
+      player.tilt += (targetTilt - player.tilt) * tiltResponse;
+      player.anim = (player.anim + dt * ((boosting ? 9.2 : 5.5) + Math.min(speed, maxSpeed) / 90)) % 6;
+      player.x = clamp(player.x + player.vx * dt, 72, WIDTH - 72);
+      player.y = clamp(player.y + player.vy * dt, 88, HEIGHT - 82);
+      if (player.inputMode === "auto") {
+        const targetLightAngle = Math.atan2(player.lightTargetUy, player.lightTargetUx);
+        const lightDelta = Math.atan2(Math.sin(targetLightAngle - player.lightAngle), Math.cos(targetLightAngle - player.lightAngle));
+        const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+        const easedTurn = lightDelta * (1 - Math.exp(-6.2 * dt));
+        const maxTurnStep = 4.35 * dt;
+        const lightTurnStep = reducedMotion ? lightDelta : clamp(easedTurn, -maxTurnStep, maxTurnStep);
+        player.lightAngle = Math.atan2(Math.sin(player.lightAngle + lightTurnStep), Math.cos(player.lightAngle + lightTurnStep));
+        player.lightUx = Math.cos(player.lightAngle);
+        player.lightUy = Math.sin(player.lightAngle);
+        shell.dataset.lightTurnStep = Math.abs(lightTurnStep).toFixed(4);
+        shell.dataset.maxLightTurnStep = Math.max(Number(shell.dataset.maxLightTurnStep) || 0, Math.abs(lightTurnStep)).toFixed(4);
+        shell.dataset.lightAngle = player.lightAngle.toFixed(3);
+      }
+      if (Math.abs(player.vx) > 8) {
+        const desiredFacing = player.vx > 0 ? 1 : -1;
+        if (player.inputMode === "auto" && desiredFacing !== player.facing) {
+          if (player.facingIntent !== desiredFacing) {
+            player.facingIntent = desiredFacing;
+            player.facingChangeTimer = 0;
+          } else player.facingChangeTimer += dt;
+          if (player.facingChangeTimer >= .14 && Math.abs(player.vx) > 55) {
+            player.facing = desiredFacing;
+            player.facingChangeTimer = 0;
+          }
+        } else {
+          player.facing = desiredFacing;
+          player.facingIntent = desiredFacing;
+          player.facingChangeTimer = 0;
+        }
+      }
+      player.invincible = Math.max(0, player.invincible - dt);
+      state.boostTrailTimer -= dt;
+      if (boosting && speed > 75 && state.boostTrailTimer <= 0) {
+        state.boostTrailTimer = .045;
+        const tailX = player.x - player.facing * 54 * player.scale * viewScale();
+        for (let index = 0; index < 2; index++) {
+          state.particles.push({
+            x: tailX + random(-4, 4), y: player.y + random(-13, 13),
+            vx: -player.facing * random(80, 155), vy: random(-18, 18),
+            life: random(.26, .48), maxLife: .48, kind: "boost", size: random(3, 7)
+          });
+        }
+      }
+      shell.dataset.boost = boosting ? "on" : "off";
+      shell.dataset.playerFacing = player.facing;
+      shell.dataset.playerTilt = (player.tilt * player.facing * 180 / Math.PI).toFixed(1);
+    }
+
+    function updateCreatures(dt) {
+      const zone = currentZone();
+      state.spawnTimer -= dt;
+      state.dangerTimer -= dt;
+      state.jellyTimer -= dt;
+      state.bossRespawn = Math.max(0, state.bossRespawn - dt);
+      if (state.growth >= 72 && !state.bossSpawned && !state.bossDefeated && state.bossRespawn === 0) spawnBoss();
+      if (state.spawnTimer <= 0) {
+        spawnPrey();
+        if (Math.random() < .28) spawnPrey(WIDTH + random(160, 330));
+        state.spawnTimer = random(...zone.preyDelay);
+      }
+      if (state.dangerTimer <= 0) {
+        spawnPuffer();
+        if (Math.random() < zone.pufferGroup) spawnPuffer(WIDTH + random(300, 440));
+        state.dangerTimer = random(...zone.pufferDelay);
+      }
+      if (state.jellyTimer <= 0) {
+        spawnJelly();
+        if (Math.random() < zone.jellyGroup) spawnJelly(WIDTH + random(230, 360));
+        state.jellyTimer = random(...zone.jellyDelay);
+      }
+
+      const sceneScale = viewScale();
+      const playerRadius = 42 * state.player.scale * sceneScale;
+      let fleeingPrey = 0;
+      for (const creature of state.creatures) {
+        creature.hitCooldown = Math.max(0, (creature.hitCooldown || 0) - dt);
+        if (creature.kind === "prey") {
+          const awayX = creature.x - state.player.x;
+          const awayY = creature.y - state.player.y;
+          const distance = Math.max(1, Math.hypot(awayX, awayY));
+          const awareness = creature.species === "sardine" ? 315 : creature.species === "shrimp" ? 285 : 300;
+          creature.flee = clamp((awareness * sceneScale - distance) / (awareness * sceneScale), 0, 1);
+          if (creature.flee > 0) {
+            fleeingPrey += 1;
+            const acceleration = creature.species === "shrimp" ? 760 : creature.species === "sardine" ? 680 : 610;
+            creature.evadeVx += awayX / distance * acceleration * creature.flee * dt;
+            creature.evadeVy += awayY / distance * acceleration * 1.08 * creature.flee * dt;
+            creature.fleeBubbleTimer -= dt;
+            if (creature.fleeBubbleTimer <= 0 && creature.flee > .38) {
+              creature.fleeBubbleTimer = random(.22, .38);
+              state.particles.push({
+                x: creature.x + (creature.baseSize * creature.scale * sceneScale) * .28,
+                y: creature.y + random(-10, 10), vx: random(14, 34), vy: random(-28, -12),
+                life: .48, maxLife: .48, kind: "flee", size: random(2, 4)
+              });
+            }
+          }
+          const evadeDrag = Math.pow(.085, dt);
+          creature.evadeVx *= evadeDrag;
+          creature.evadeVy *= evadeDrag;
+          const evadeSpeed = Math.hypot(creature.evadeVx, creature.evadeVy);
+          const evadeMax = creature.species === "sardine" ? 245 : creature.species === "shrimp" ? 220 : 205;
+          if (evadeSpeed > evadeMax) {
+            creature.evadeVx *= evadeMax / evadeSpeed;
+            creature.evadeVy *= evadeMax / evadeSpeed;
+          }
+          creature.x += creature.evadeVx * dt;
+          creature.y += creature.evadeVy * dt;
+          creature.y = clamp(creature.y, 108, HEIGHT - 105);
+        }
+        const currentDrift = creature.speed + state.current * .25;
+        creature.x -= currentDrift * dt;
+        if (creature.kind === "prey") creature.facing = creature.evadeVx > currentDrift * .72 ? 1 : -1;
+        const bobRate = creature.kind === "jelly" ? 1.6 : creature.kind === "shark" ? 1.05 : 2.8;
+        const bobAmount = creature.kind === "jelly" ? 18 : creature.kind === "shark" ? 5 : 8;
+        creature.y += Math.sin(state.elapsed * bobRate + creature.phase) * bobAmount * dt;
+        const radiusBase = creature.kind === "prey" ? (creature.baseSize || 132) * .22 : creature.kind === "puffer" ? 59 : creature.kind === "shark" ? 102 : 46;
+        const radius = radiusBase * creature.scale * sceneScale;
+        const dx = creature.x - state.player.x;
+        const dy = creature.y - state.player.y;
+        if (!creature.eaten && dx * dx + dy * dy < (playerRadius + radius) ** 2) {
+          if (creature.kind === "shark" && canEatCreature(creature)) biteBoss(creature);
+          else if (canEatCreature(creature)) eat(creature);
+          else loseHeart(creature);
+        }
+        if (creature.kind === "shark" && !creature.eaten && creature.x < -360) {
+          creature.eaten = true;
+          state.bossSpawned = false;
+          state.bossRespawn = 1.8;
+        }
+      }
+      shell.dataset.fleeingPrey = fleeingPrey;
+      state.creatures = state.creatures.filter(creature => !creature.eaten && creature.x > (creature.kind === "shark" ? -420 : -220));
+    }
+
+    function updateWorld(dt) {
+      state.elapsed += dt;
+      state.current = currentZone().current + Math.min(state.growth, 145) * .4;
+      if (state.powered && !state.nextReady) {
+        state.feastTimer = Math.max(0, state.feastTimer - dt);
+        if (state.feastTimer === 0 && state.bossDefeated) unlockNextLevel();
+      }
+      for (const decor of state.decorations) {
+        decor.x -= state.current * decor.speed * dt;
+        if (decor.x < -190) {
+          decor.x += WIDTH + 850;
+          decor.height = random(80, 155);
+        }
+      }
+      for (const decor of [...state.depthFar, ...state.depthMid]) {
+        decor.x -= state.current * decor.speed * dt;
+        if (decor.x < -360) decor.x += WIDTH + 2450;
+      }
+      for (const bubble of state.bubbles) {
+        bubble.y -= bubble.speed * dt;
+        bubble.x -= state.current * .08 * dt;
+        if (bubble.y < -20) { bubble.y = HEIGHT + random(0, 120); bubble.x = random(0, WIDTH); }
+        if (bubble.x < -20) bubble.x = WIDTH + 20;
+      }
+      for (const particle of state.particles) {
+        particle.x += particle.vx * dt;
+        particle.y += particle.vy * dt;
+        particle.vy -= 14 * dt;
+        particle.life -= dt;
+      }
+      state.particles = state.particles.filter(particle => particle.life > 0);
+    }
+
+    function update(dt) {
+      updateWorld(dt);
+      updateAutoPlay(dt);
+      updatePlayer(dt);
+      updateCreatures(dt);
+    }
+
+    function drawBackground(time) {
+      const zone = currentZone();
+      const gradient = ctx.createLinearGradient(0, 0, 0, HEIGHT);
+      gradient.addColorStop(0, zone.colors[0]);
+      gradient.addColorStop(.48, zone.colors[1]);
+      gradient.addColorStop(1, zone.colors[2]);
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, WIDTH, HEIGHT);
+
+      const farBed = images.depth_far_bed;
+      if (farBed) {
+        ctx.save();
+        ctx.globalAlpha = .18;
+        ctx.globalCompositeOperation = "soft-light";
+        ctx.imageSmoothingEnabled = false;
+        ctx.drawImage(farBed, 0, 0, WIDTH, HEIGHT);
+        ctx.restore();
+      }
+
+      ctx.save();
+      ctx.globalCompositeOperation = "screen";
+      for (let band = 0; band < 4; band++) {
+        const y = 90 + band * 118 + Math.sin(time * .22 + band) * 7;
+        const haze = ctx.createRadialGradient(WIDTH * (.18 + band * .23), y, 0, WIDTH * (.18 + band * .23), y, 250);
+        haze.addColorStop(0, "rgba(80, 187, 255, .09)");
+        haze.addColorStop(1, "rgba(80, 187, 255, 0)");
+        ctx.fillStyle = haze;
+        ctx.fillRect(0, y - 180, WIDTH, 360);
+      }
+      ctx.restore();
+
+      drawDepthItems(state.depthFar);
+      drawImage("depth_far_ridge", WIDTH * .24, HEIGHT - 90, Math.min(230, HEIGHT * .35), .18);
+      drawImage("depth_far_ridge", WIDTH * .76, HEIGHT - 78, Math.min(210, HEIGHT * .32), .16, true);
+
+      drawImage("bg_corner_left", 120, HEIGHT - 92, 205, .34);
+      drawImage("bg_corner_right", WIDTH - 180, HEIGHT - 66, 145, .38, true);
+
+      const seabeds = [
+        { y: HEIGHT - 168, amp: 18, color: zone.seabeds[0], speed: .14 },
+        { y: HEIGHT - 112, amp: 23, color: zone.seabeds[1], speed: .2 },
+        { y: HEIGHT - 56, amp: 18, color: zone.seabeds[2], speed: .28 }
+      ];
+      for (const bed of seabeds) {
+        ctx.fillStyle = bed.color;
+        ctx.beginPath();
+        ctx.moveTo(0, HEIGHT);
+        ctx.lineTo(0, bed.y);
+        for (let x = 0; x <= WIDTH; x += 48) {
+          ctx.lineTo(x, bed.y + Math.sin(x * .011 + state.elapsed * bed.speed) * bed.amp);
+        }
+        ctx.lineTo(WIDTH, HEIGHT);
+        ctx.closePath();
+        ctx.fill();
+      }
+
+      for (const bubble of state.bubbles) {
+        drawImage("bg_bubble", bubble.x, bubble.y + bubble.r, Math.max(10, bubble.r * 3.1), .2 + bubble.r * .018);
+      }
+    }
+
+    function drawDecorations() {
+      const sorted = [...state.decorations].sort((a, b) => a.x - b.x);
+      const sceneScale = viewScale();
+      for (const decor of sorted) drawImage(decor.type, decor.x, decor.y, decor.height * sceneScale, .5, decor.flip);
+    }
+
+    function drawDepthItems(items) {
+      const sceneScale = viewScale();
+      const sorted = [...items].sort((a, b) => a.x - b.x);
+      for (const decor of sorted) drawImage(decor.type, decor.x, decor.y, decor.height * sceneScale, decor.alpha, decor.flip);
+    }
+
+    function drawMidDepth() {
+      const bedHeight = Math.min(330, HEIGHT * .46);
+      const bed = images.depth_mid_bed;
+      if (bed) {
+        const tileWidth = Math.max(1, Math.round(bed.width * bedHeight / bed.height));
+        const top = Math.round(HEIGHT + 18 - bedHeight);
+        ctx.save();
+        ctx.globalAlpha = .24;
+        ctx.imageSmoothingEnabled = false;
+        for (let x = 0; x < WIDTH; x += tileWidth) {
+          const width = Math.min(tileWidth, WIDTH - x);
+          const sourceWidth = bed.width * width / tileWidth;
+          ctx.drawImage(bed, 0, 0, sourceWidth, bed.height, x, top, width, bedHeight);
+        }
+        ctx.restore();
+      }
+      drawDepthItems(state.depthMid);
+    }
+
+    function drawForegroundDepth(time) {
+      const mobileScale = WIDTH < 520 ? .42 : .92;
+      const height = Math.min(470, HEIGHT * .62) * mobileScale;
+      for (const decor of state.depthFront) {
+        const drift = Math.sin(time * .28 + decor.phase) * 5;
+        const x = decor.edge === "left" ? 34 + drift : WIDTH - 28 + drift;
+        const assetHeight = decor.edge === "left" ? height : height * .82;
+        ctx.save();
+        ctx.filter = "brightness(.72) saturate(.86)";
+        drawImage(decor.type, x, HEIGHT + 18, assetHeight, .9, decor.flip);
+        ctx.restore();
+      }
+    }
+
+    function drawCreatureEffect(creature, time, sceneScale, frame = 0) {
+      const pulse = .5 + .5 * Math.sin(time * 5 + creature.phase);
+      const size = creatureVisualSize(creature) * sceneScale;
+      ctx.save();
+      ctx.globalCompositeOperation = "screen";
+      if (creature.species === "lanternfish") {
+        const anchor = LANTERN_LAMP_ANCHORS[frame] || LANTERN_LAMP_ANCHORS[0];
+        const lampX = creature.x + (creature.facing || -1) * size * anchor[0];
+        const lampY = creature.y + size * anchor[1];
+        const glow = ctx.createRadialGradient(lampX, lampY, 0, lampX, lampY, 18 + pulse * 16);
+        glow.addColorStop(0, `rgba(255, 245, 156, ${.82 + pulse * .14})`);
+        glow.addColorStop(.32, `rgba(255, 201, 62, ${.38 + pulse * .22})`);
+        glow.addColorStop(1, "rgba(255, 184, 48, 0)");
+        ctx.fillStyle = glow;
+        ctx.beginPath(); ctx.arc(lampX, lampY, 34, 0, Math.PI * 2); ctx.fill();
+      } else if (creature.species === "butterflyfish") {
+        ctx.strokeStyle = `rgba(255, 241, 133, ${.18 + pulse * .38})`;
+        ctx.lineWidth = Math.max(2, size * .018);
+        ctx.beginPath();
+        ctx.moveTo(creature.x - size * .18, creature.y - size * .3);
+        ctx.lineTo(creature.x + size * .12, creature.y + size * .25);
+        ctx.stroke();
+      } else if (creature.species === "sardine") {
+        ctx.strokeStyle = `rgba(210, 248, 255, ${.18 + pulse * .5})`;
+        ctx.lineWidth = Math.max(1.5, size * .014);
+        ctx.beginPath();
+        ctx.moveTo(creature.x - size * .27, creature.y - size * .08);
+        ctx.lineTo(creature.x + size * .26, creature.y - size * .03);
+        ctx.stroke();
+      } else if (creature.species === "shrimp") {
+        ctx.strokeStyle = `rgba(255, 157, 107, ${.16 + pulse * .28})`;
+        ctx.lineWidth = 2;
+        for (let offset = -1; offset <= 1; offset++) {
+          ctx.beginPath();
+          ctx.moveTo(creature.x + size * .22, creature.y + offset * 6);
+          ctx.quadraticCurveTo(creature.x + size * (.38 + pulse * .08), creature.y + offset * 9, creature.x + size * .5, creature.y + offset * 13);
+          ctx.stroke();
+        }
+      } else if (creature.kind === "jelly") {
+        ctx.strokeStyle = `rgba(184, 154, 255, ${.16 + pulse * .28})`;
+        ctx.lineWidth = 2;
+        for (let ring = 0; ring < 2; ring++) {
+          const radius = size * (.22 + ring * .12 + pulse * .05);
+          ctx.beginPath();
+          ctx.ellipse(creature.x, creature.y + size * .22, radius, radius * .34, 0, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+      } else if (creature.kind === "puffer") {
+        ctx.strokeStyle = `rgba(255, 144, 92, ${canEatCreature(creature) ? .18 : .32 + pulse * .24})`;
+        ctx.lineWidth = 3;
+        ctx.setLineDash([6, 7]);
+        ctx.beginPath(); ctx.arc(creature.x, creature.y, size * (.31 + pulse * .025), 0, Math.PI * 2); ctx.stroke();
+      } else if (creature.kind === "shark") {
+        ctx.strokeStyle = `rgba(105, 219, 255, ${.12 + pulse * .2})`;
+        ctx.lineWidth = 3;
+        for (let ring = 0; ring < 2; ring++) {
+          ctx.beginPath();
+          ctx.ellipse(creature.x + size * .22, creature.y, size * (.34 + ring * .08 + pulse * .025), size * (.18 + ring * .035), 0, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+      }
+      ctx.restore();
+    }
+
+    function drawCreatures(time) {
+      const sceneScale = viewScale();
+      for (const creature of state.creatures) {
+        const frame = creature.kind === "prey"
+          ? Math.floor(time * (7 + creature.flee * 5) + creature.phase) % 6
+          : creature.kind === "puffer"
+            ? Math.floor(time * 4.5 + creature.phase) % 6
+            : creature.kind === "jelly"
+              ? Math.floor(time * 4 + creature.phase) % 6
+              : Math.floor(time * 3.8 + creature.phase) % 6;
+        drawCreatureEffect(creature, time, sceneScale, frame);
+        if (creature.kind === "prey") {
+          drawFrame(creature.sheet, frame, creature.x, creature.y, creature.baseSize * creature.scale * sceneScale, creature.facing || -1);
+        } else if (creature.kind === "puffer") {
+          drawFrame(creature.sheet, frame, creature.x, creature.y, 220 * creature.scale * sceneScale, -1);
+        } else if (creature.kind === "jelly") {
+          drawFrame(creature.sheet, frame, creature.x, creature.y, 205 * creature.scale * sceneScale, 1);
+        } else {
+          drawFrame(creature.sheet, frame, creature.x, creature.y, 360 * creature.scale * sceneScale, -1);
+          const barWidth = 150 * sceneScale;
+          const barY = creature.y - 128 * creature.scale * sceneScale;
+          ctx.fillStyle = "rgba(3, 25, 48, .82)";
+          ctx.fillRect(creature.x - barWidth / 2 - 3, barY - 3, barWidth + 6, 13);
+          ctx.fillStyle = "#ff795f";
+          ctx.fillRect(creature.x - barWidth / 2, barY, barWidth * creature.hp / creature.maxHp, 7);
+          ctx.fillStyle = "#dff8ee";
+          ctx.font = `700 ${Math.max(10, 12 * sceneScale)}px "PingFang SC", "Microsoft YaHei", sans-serif`;
+          ctx.textAlign = "center";
+          ctx.fillText("鲨鱼王 · 咬三次", creature.x, barY - 8);
+        }
+      }
+    }
+
+    function drawSpotlight(time) {
+      const player = state.player;
+      const sceneScale = viewScale();
+      const boosting = keys.has("Shift") || state.pointerBoost || state.autoBoost;
+      const frame = Math.floor(player.anim) % 6;
+      const spriteSize = 196 * player.scale * sceneScale;
+      const anchor = MOMO_LAMP_ANCHORS[frame] || MOMO_LAMP_ANCHORS[0];
+      const spriteRotation = player.tilt * player.facing;
+      const anchorX = player.facing * spriteSize * anchor[0];
+      const anchorY = spriteSize * anchor[1];
+      const rotationCos = Math.cos(spriteRotation);
+      const rotationSin = Math.sin(spriteRotation);
+      const targetLampOffsetX = anchorX * rotationCos - anchorY * rotationSin;
+      const targetLampOffsetY = anchorX * rotationSin + anchorY * rotationCos;
+      const lightRenderDt = player.lightRenderTime ? clamp(time - player.lightRenderTime, 0, .034) : 0;
+      player.lightRenderTime = time;
+      if (player.inputMode === "auto" && player.lampReady && !matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        const anchorFollow = 1 - Math.exp(-15.5 * lightRenderDt);
+        player.lampOffsetX += (targetLampOffsetX - player.lampOffsetX) * anchorFollow;
+        player.lampOffsetY += (targetLampOffsetY - player.lampOffsetY) * anchorFollow;
+      } else {
+        player.lampOffsetX = targetLampOffsetX;
+        player.lampOffsetY = targetLampOffsetY;
+      }
+      player.lampReady = true;
+      const lampX = player.x + player.lampOffsetX;
+      const lampY = player.y + player.lampOffsetY;
+      const dx = player.targetX - lampX;
+      const dy = player.targetY - lampY;
+      const rawDistance = Math.max(1, Math.hypot(dx, dy));
+      const guidedBeam = player.inputMode === "keyboard" || player.inputMode === "auto";
+      const restingBeam = rawDistance < 105;
+      let ux, uy, distance;
+      if (guidedBeam) {
+        ux = player.lightUx || player.facing;
+        uy = player.lightUy || 0;
+        distance = player.inputMode === "auto" ? clamp(rawDistance, 330, boosting ? 730 : 620) : boosting ? 690 : 560;
+      } else if (restingBeam) {
+        ux = player.lightUx || player.facing;
+        uy = player.lightUy || 0;
+        distance = boosting ? 650 : 520;
+      } else {
+        ux = dx / rawDistance;
+        uy = dy / rawDistance;
+        player.lightUx = ux;
+        player.lightUy = uy;
+        player.lightAngle = Math.atan2(uy, ux);
+        distance = clamp(rawDistance, 260, boosting ? 780 : 660);
+      }
+      const endX = lampX + ux * distance;
+      const endY = lampY + uy * distance;
+      const spread = distance * (boosting ? .4 : .34);
+      const px = -uy * spread;
+      const py = ux * spread;
+
+      lightCtx.clearRect(0, 0, WIDTH, HEIGHT);
+      lightCtx.globalCompositeOperation = "source-over";
+      lightCtx.fillStyle = "rgba(2, 17, 52, .34)";
+      lightCtx.fillRect(0, 0, WIDTH, HEIGHT);
+      lightCtx.globalCompositeOperation = "destination-out";
+      const cutout = lightCtx.createRadialGradient(lampX, lampY, 10, lampX, lampY, distance * 1.08);
+      cutout.addColorStop(0, "rgba(0,0,0,1)");
+      cutout.addColorStop(.6, "rgba(0,0,0,.94)");
+      cutout.addColorStop(.86, "rgba(0,0,0,.62)");
+      cutout.addColorStop(1, "rgba(0,0,0,0)");
+      lightCtx.fillStyle = cutout;
+      const featherLayers = [[1.16,.16],[1,.22],[.84,.3],[.68,.44]];
+      for (const [widthScale, layerAlpha] of featherLayers) {
+        lightCtx.globalAlpha = layerAlpha;
+        lightCtx.beginPath();
+        lightCtx.moveTo(lampX, lampY);
+        lightCtx.lineTo(endX + px * widthScale, endY + py * widthScale);
+        lightCtx.quadraticCurveTo(endX + ux * 62, endY + uy * 62, endX - px * widthScale, endY - py * widthScale);
+        lightCtx.closePath();
+        lightCtx.fill();
+      }
+      lightCtx.globalAlpha = 1;
+      lightCtx.globalCompositeOperation = "source-over";
+      ctx.drawImage(lightOverlay, 0, 0);
+
+      ctx.save();
+      ctx.globalCompositeOperation = "screen";
+      const beam = ctx.createRadialGradient(lampX, lampY, 3, lampX, lampY, distance * 1.08);
+      beam.addColorStop(0, `rgba(255, 239, 157, ${boosting ? .52 : .4})`);
+      beam.addColorStop(.52, `rgba(162, 226, 255, ${boosting ? .23 : .16})`);
+      beam.addColorStop(1, "rgba(92, 188, 255, 0)");
+      ctx.fillStyle = beam;
+      ctx.filter = "blur(7px)";
+      ctx.beginPath();
+      ctx.moveTo(lampX, lampY);
+      ctx.lineTo(endX + px, endY + py);
+      ctx.quadraticCurveTo(endX + ux * 38, endY + uy * 38, endX - px, endY - py);
+      ctx.closePath();
+      ctx.fill();
+      ctx.filter = "none";
+      const lampGlow = ctx.createRadialGradient(lampX, lampY, 0, lampX, lampY, 24 + Math.sin(time * 7) * 3);
+      lampGlow.addColorStop(0, "rgba(255, 250, 185, .95)");
+      lampGlow.addColorStop(1, "rgba(255, 213, 85, 0)");
+      ctx.fillStyle = lampGlow;
+      ctx.beginPath(); ctx.arc(lampX, lampY, 28, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = `rgba(209, 247, 255, ${.35 + Math.sin(time * 4) * .1})`;
+      ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(player.targetX, player.targetY, boosting ? 18 : 13, 0, Math.PI * 2); ctx.stroke();
+      ctx.restore();
+      shell.dataset.lightTarget = `${Math.round(player.targetX)},${Math.round(player.targetY)}`;
+      shell.dataset.lampAnchor = `${Math.round(lampX)},${Math.round(lampY)}`;
+    }
+
+    function drawPlayer(time) {
+      const player = state.player;
+      if (player.invincible > 0 && Math.floor(player.invincible * 11) % 2 === 0) return;
+      const frame = Math.floor(player.anim) % 6;
+      const sceneScale = viewScale();
+      if (state.powered) {
+        const pulse = 1 + Math.sin(time * 5.2) * .06;
+        ctx.save();
+        ctx.globalCompositeOperation = "screen";
+        ctx.strokeStyle = "rgba(255, 225, 92, .78)";
+        ctx.lineWidth = Math.max(4, 6 * sceneScale);
+        ctx.beginPath();
+        ctx.arc(Math.round(player.x), Math.round(player.y), 64 * player.scale * sceneScale * pulse, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.strokeStyle = "rgba(125, 238, 255, .4)";
+        ctx.lineWidth = Math.max(2, 3 * sceneScale);
+        ctx.beginPath();
+        ctx.arc(Math.round(player.x), Math.round(player.y), 74 * player.scale * sceneScale / pulse, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+      }
+      ctx.save();
+      ctx.fillStyle = "rgba(1, 31, 53, .2)";
+      ctx.beginPath(); ctx.ellipse(player.x, player.y + 38 * player.scale * sceneScale, 47 * player.scale * sceneScale, 12 * player.scale * sceneScale, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.restore();
+      drawFrame("momo_swim", frame, player.x, player.y, 196 * player.scale * sceneScale, player.facing, 1, player.tilt * player.facing);
+      shell.dataset.playerFrame = frame;
+      shell.dataset.playerX = Math.round(player.x);
+      shell.dataset.playerY = Math.round(player.y);
+    }
+
+    function drawParticles() {
+      for (const particle of state.particles) {
+        const alpha = clamp(particle.life / particle.maxLife, 0, 1);
+        ctx.globalAlpha = alpha;
+        ctx.fillStyle = particle.kind === "hurt" ? "#ff826e" : particle.kind === "gold" ? "#ffe173" : particle.kind === "boost" ? "#8ae9ff" : particle.kind === "wave" ? "#7ad8ff" : particle.kind === "flee" ? "#d5fbff" : "#baf5df";
+        if (particle.kind === "gold") {
+          ctx.save(); ctx.translate(particle.x, particle.y); ctx.rotate(Math.PI / 4); ctx.fillRect(-particle.size / 2, -particle.size / 2, particle.size, particle.size); ctx.restore();
+        } else if (particle.kind === "boost") {
+          ctx.save();
+          ctx.strokeStyle = `rgba(151, 241, 255, ${alpha})`;
+          ctx.lineWidth = Math.max(1, particle.size * .28);
+          ctx.beginPath();
+          ctx.arc(particle.x, particle.y, particle.size * .82, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.fillStyle = `rgba(226, 253, 255, ${alpha * .8})`;
+          ctx.beginPath();
+          ctx.arc(particle.x - particle.size * .25, particle.y - particle.size * .28, Math.max(1, particle.size * .2), 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+        } else {
+          ctx.beginPath(); ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2); ctx.fill();
+        }
+      }
+      ctx.globalAlpha = 1;
+    }
+
+    function render(timeMs = 0) {
+      const time = timeMs / 1000;
+      const dt = previousTime ? Math.min(.034, (timeMs - previousTime) / 1000) : 0;
+      previousTime = timeMs;
+      if (state.mode === "playing") update(dt);
+      else if (state.mode === "ready" || state.mode === "loading") updateWorld(dt * .35);
+      drawBackground(time);
+      drawDecorations();
+      drawMidDepth();
+      drawCreatures(time);
+      drawSpotlight(time);
+      drawPlayer(time);
+      drawParticles();
+      drawForegroundDepth(time);
+      requestAnimationFrame(render);
+    }
+
+    function togglePause() {
+      if (state.mode === "playing") {
+        state.mode = "paused";
+        waterVideo.pause();
+        pauseBgm();
+        shell.dataset.waterLight = "paused";
+        ui.pause.textContent = "▶";
+        ui.pause.setAttribute("aria-label", "继续游戏");
+        say("暂停一下，泡泡也歇口气。", 1300);
+      } else if (state.mode === "paused") {
+        state.mode = "playing";
+        if (!matchMedia("(prefers-reduced-motion: reduce)").matches) waterVideo.play().catch(() => {});
+        shell.dataset.waterLight = "playing";
+        playZoneBgm(500);
+        ui.pause.textContent = "Ⅱ";
+        ui.pause.setAttribute("aria-label", "暂停游戏");
+      }
+      updateHUD();
+    }
+
+    async function loadAssets() {
+      const entries = Object.entries(ASSET_URLS);
+      await Promise.all(entries.map(([name, url]) => new Promise((resolve, reject) => {
+        const image = new Image();
+        image.onload = () => { images[name] = image; resolve(); };
+        image.onerror = () => reject(new Error(`素材加载失败：${name}`));
+        image.src = url;
+      })));
+      document.getElementById("smallFishIcon").style.backgroundImage = `url(${ASSET_URLS.icon_star})`;
+      document.getElementById("pufferIcon").style.backgroundImage = `url(${ASSET_URLS.icon_warning})`;
+      state.mode = "ready";
+      shell.dataset.assetCount = entries.length;
+      shell.dataset.state = "ready";
+      startButton.disabled = false;
+      startButton.textContent = "开饭啦！";
+      resetGame();
+      state.mode = "ready";
+      updateHUD();
+      window.__GAME_READY__ = true;
+    }
+
+    canvas.addEventListener("pointerdown", event => {
+      takeManualControl();
+      const point = fitPointer(event.clientX, event.clientY);
+      state.player.targetX = point.x; state.player.targetY = point.y;
+      state.player.inputMode = "pointer";
+      state.pointerBoost = true;
+      canvas.setPointerCapture?.(event.pointerId);
+    });
+    canvas.addEventListener("pointermove", event => {
+      if (state.autoPlay) return;
+      if (event.pointerType === "mouse" || event.buttons) {
+        const point = fitPointer(event.clientX, event.clientY);
+        state.player.targetX = point.x; state.player.targetY = point.y;
+        state.player.inputMode = "pointer";
+      }
+    });
+    const releaseBoost = event => {
+      state.pointerBoost = false;
+      if (event?.pointerId != null) {
+        try { canvas.releasePointerCapture?.(event.pointerId); } catch (_) {}
+      }
+    };
+    canvas.addEventListener("pointerup", releaseBoost);
+    canvas.addEventListener("pointercancel", releaseBoost);
+    canvas.addEventListener("lostpointercapture", () => { state.pointerBoost = false; });
+    window.addEventListener("keydown", event => {
+      if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", " "].includes(event.key)) event.preventDefault();
+      if (event.key === " " || event.key === "Escape") togglePause();
+      const normalizedKey = event.key.length === 1 ? event.key.toLowerCase() : event.key;
+      if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "w", "a", "s", "d"].includes(normalizedKey)) takeManualControl();
+      keys.add(normalizedKey);
+    });
+    window.addEventListener("keyup", event => keys.delete(event.key.length === 1 ? event.key.toLowerCase() : event.key));
+    startButton.addEventListener("click", () => { setAutoPlay(false, false); startGame(); });
+    ui.nextLevel.addEventListener("click", goToNextLevel);
+    ui.pause.addEventListener("click", togglePause);
+    ui.auto.addEventListener("click", () => setAutoPlay(!state.autoPlay));
+    ui.sound.addEventListener("click", () => {
+      state.sound = !state.sound;
+      if (state.sound) {
+        audioContext?.resume?.();
+        playZoneBgm(450);
+        if (state.mode === "playing") beep(640, .07, "triangle", .025);
+      } else pauseBgm();
+      syncSoundControl();
+    });
+    document.addEventListener("visibilitychange", () => { if (document.hidden && state.mode === "playing") togglePause(); });
+    window.addEventListener("resize", resizeWorld);
+
+    const startWaterLight = () => {
+      waterVideo.play().catch(() => { shell.dataset.waterLight = "blocked"; });
+      renderWaterLight();
+    };
+    if (waterVideo.readyState >= 2) startWaterLight();
+    else waterVideo.addEventListener("loadeddata", startWaterLight, { once: true });
+    waterVideo.addEventListener("timeupdate", () => {
+      shell.dataset.waterTime = waterVideo.currentTime.toFixed(2);
+      if (!waterVideo.paused) shell.dataset.waterLight = "playing";
+    });
+    waterVideo.addEventListener("error", () => {
+      shell.dataset.waterLight = "fallback";
+      waterVideo.style.display = "none";
+    }, { once: true });
+
+    let loadedBgmCount = 0;
+    for (const [name, track] of Object.entries(bgmTracks)) {
+      track.volume = 0;
+      track.addEventListener("loadedmetadata", () => {
+        loadedBgmCount += 1;
+        shell.dataset.bgmReady = loadedBgmCount === Object.keys(bgmTracks).length ? "all" : String(loadedBgmCount);
+      }, { once: true });
+      track.addEventListener("error", () => { shell.dataset.bgmError = name; }, { once: true });
+      track.load();
+    }
+
+    let loadedSfxCount = 0;
+    for (const [name, track] of Object.entries(sfxSources)) {
+      track.addEventListener("loadedmetadata", () => {
+        loadedSfxCount += 1;
+        shell.dataset.sfxReady = loadedSfxCount === Object.keys(sfxSources).length ? "all" : String(loadedSfxCount);
+      }, { once: true });
+      track.addEventListener("error", () => { shell.dataset.sfxError = name; }, { once: true });
+      track.load();
+    }
+    for (const pool of Object.values(sfxPools)) {
+      for (const track of pool) track.load();
+    }
+
+    makeLives();
+    syncSoundControl();
+    updateHUD();
+    render();
+    loadAssets().catch(error => {
+      console.error(error);
+      shell.dataset.state = "error";
+      startButton.textContent = "素材装载失败";
+      ui.coverCopy.textContent = `${error.message}。请重新打开游戏文件。`;
+    });
+  </script>
+</body>
+</html>
